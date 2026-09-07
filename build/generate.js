@@ -2526,7 +2526,9 @@ function renderIndexPage(
   );
 
   const splashImages =
-    buildSplashImages(projects);
+  splashVideoSource
+    ? []
+    : buildSplashImages(projects);
 
   let html =
     resolveIf(
