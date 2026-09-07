@@ -1419,3 +1419,20 @@ main.project {
     transition: none;
   }
 }
+
+@media (prefers-reduced-motion: reduce) {
+  .back-to-top {
+    transition: none;
+  }
+}
+
+/* Disable project-tile fade-in on phones. */
+
+@media (max-width: 700px) {
+  .project-grid
+  .fade-in {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}
