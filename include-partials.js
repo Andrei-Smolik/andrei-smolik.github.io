@@ -847,6 +847,56 @@ function initProjectVideoControls() {
   });
 }
 
+function initBackToTop() {
+  const pageScroll =
+    document.getElementById(
+      'pageScroll'
+    );
+
+  const button =
+    document.getElementById(
+      'backToTop'
+    );
+
+  if (!pageScroll || !button) {
+    return;
+  }
+
+  function updateVisibility() {
+    button.classList.toggle(
+      'is-visible',
+      pageScroll.scrollTop >
+        window.innerHeight
+    );
+  }
+
+  pageScroll.addEventListener(
+    'scroll',
+    updateVisibility,
+    { passive: true }
+  );
+
+  button.addEventListener(
+    'click',
+    () => {
+      const reducedMotion =
+        window.matchMedia(
+          '(prefers-reduced-motion: reduce)'
+        ).matches;
+
+      pageScroll.scrollTo({
+        top: 0,
+        behavior:
+          reducedMotion
+            ? 'auto'
+            : 'smooth',
+      });
+    }
+  );
+
+  updateVisibility();
+}
+
 // ---------------------------------------------------------------------
 // Initialization
 // ---------------------------------------------------------------------
@@ -871,3 +921,5 @@ includePartials().then(
 initSplashRotation();
 initSplashVideo();
 initSplashScrollTrigger();
+initBackToTop();
+

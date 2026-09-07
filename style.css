@@ -871,3 +871,42 @@ main.project {
 .project-facts strong {
   font-weight: 600;
 }
+
+.back-to-top {
+  position: fixed;
+  right: var(--gutter);
+  bottom: clamp(1.25rem, 3vw, 2rem);
+  z-index: 40;
+  padding: 0.65rem 1rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.92);
+  color: var(--ink);
+  font: inherit;
+  cursor: pointer;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(0.5rem);
+  transition:
+    opacity 0.25s ease,
+    transform 0.25s ease,
+    color 0.2s ease;
+  backdrop-filter: blur(8px);
+}
+
+.back-to-top.is-visible {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
+}
+
+.back-to-top:hover,
+.back-to-top:focus-visible {
+  color: var(--ink-soft);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .back-to-top {
+    transition: none;
+  }
+}
