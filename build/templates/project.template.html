@@ -1,0 +1,186 @@
+<!--
+  build/templates/project.template.html
+
+  Template for one project detail page. generate.js reads this file,
+  fills the double-curly-brace placeholders, and resolves the marker
+  blocks below, then writes the result to /project-<slug>.html in the
+  site root.
+
+  Marker conventions:
+    - Double-curly-brace tokens perform value substitution.
+    - IF-blocks retain their content only when a condition is true.
+    - EACH-blocks repeat their content once per item in a list.
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  />
+
+  <title>{{TITLE}} — {{SITE_NAME}}</title>
+
+  <meta
+    name="description"
+    content="{{SUBTITLE}} — {{YEAR}}"
+  />
+
+  <link
+    rel="icon"
+    type="image/png"
+    href="favicon.png?v=2"
+  />
+
+  <link
+    rel="stylesheet"
+    href="style.css"
+  />
+</head>
+
+<body>
+
+  <div
+    class="page-scroll"
+    id="pageScroll"
+  >
+    <div data-include="nav.html"></div>
+
+    <main class="project">
+
+      <!-- IF:TITLE_IMAGE_SINGLE -->
+      <div class="project-title-images project-title-images--single">
+        <figure class="project-image fade-in">
+          <img
+            src="{{TITLE_IMAGE_SRC}}"
+            srcset="{{TITLE_IMAGE_SRCSET}}"
+            sizes="100vw"
+            alt=""
+            decoding="async"
+          />
+        </figure>
+      </div>
+      <!-- END:TITLE_IMAGE_SINGLE -->
+
+      <!-- IF:TITLE_IMAGE_PAIR -->
+      <div class="project-title-images">
+
+        <!-- EACH:TITLE_IMAGE -->
+        <figure class="project-image fade-in">
+          <img
+            src="{{TITLE_IMAGE_SRC}}"
+            srcset="{{TITLE_IMAGE_SRCSET}}"
+            sizes="(min-width: 700px) 50vw, 100vw"
+            alt=""
+            decoding="async"
+          />
+        </figure>
+        <!-- END:TITLE_IMAGE -->
+
+      </div>
+      <!-- END:TITLE_IMAGE_PAIR -->
+
+      <div class="project-header">
+        <p class="project-title-line">
+          <strong>{{TITLE}}</strong>
+          {{SUBTITLE}}<!-- IF:YEAR -->, {{YEAR}}<!-- END:YEAR -->
+        </p>
+
+        <!-- IF:CLIENT -->
+        <p class="project-client-line">
+          Commissioned by {{CLIENT}}
+        </p>
+        <!-- END:CLIENT -->
+      </div>
+
+      <div class="project-columns{{PROJECT_COLUMNS_CLASS}}">
+
+        <!-- IF:DESCRIPTION -->
+        <div class="project-col">
+
+          <!-- EACH:DESCRIPTION_PARAGRAPH -->
+          <p>{{PARAGRAPH_TEXT}}</p>
+          <!-- END:DESCRIPTION_PARAGRAPH -->
+
+        </div>
+        <!-- END:DESCRIPTION -->
+
+        <!-- IF:FACTS -->
+        <div class="project-col">
+          <ul class="project-facts">
+
+            <!-- EACH:FACT -->
+            <li>
+              <strong>{{FACT_LABEL}}:</strong>
+              {{FACT_VALUE}}
+            </li>
+            <!-- END:FACT -->
+
+          </ul>
+        </div>
+        <!-- END:FACTS -->
+
+      </div>
+
+      <div class="project-gallery">
+
+        <!-- EACH:GALLERY_MEDIA -->
+
+        <!-- IF:GALLERY_IMAGE_ITEM -->
+        <figure class="project-image fade-in">
+          <img
+            src="{{GALLERY_IMAGE_SRC}}"
+            srcset="{{GALLERY_IMAGE_SRCSET}}"
+            sizes="100vw"
+            alt=""
+            loading="lazy"
+            decoding="async"
+          />
+        </figure>
+        <!-- END:GALLERY_IMAGE_ITEM -->
+
+        <!-- IF:GALLERY_VIDEO_ITEM -->
+        <figure class="project-image project-video fade-in">
+          <video
+            controls
+            muted
+            preload="metadata"
+            playsinline
+            tabindex="0"
+            data-autoplay-in-view
+          >
+            <source
+              src="{{GALLERY_VIDEO_SRC}}"
+              type="video/mp4"
+            />
+
+            Your browser does not support embedded video.
+          </video>
+        </figure>
+        <!-- END:GALLERY_VIDEO_ITEM -->
+
+        <!-- END:GALLERY_MEDIA -->
+
+      </div>
+
+    </main>
+
+    <footer class="site-footer">
+      <span>
+        &copy;
+        <span id="year"></span>
+        <span data-site-name>{{SITE_NAME}}</span>
+      </span>
+    </footer>
+  </div>
+
+  <script src="include-partials.js"></script>
+
+  <script>
+    document.getElementById('year').textContent =
+      new Date().getFullYear();
+  </script>
+
+</body>
+</html>

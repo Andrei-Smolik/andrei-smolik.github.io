@@ -1,0 +1,873 @@
+/* ==========================================================================
+   style.css
+   Sections: 1) Tokens & reset  2) Layout (header/main/footer)
+             3) Project grid component
+   ========================================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;1,9..144,400;1,9..144,500&family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500;600&family=Jost:wght@400;500&family=Outfit:wght@500;600&display=swap');
+
+:root {
+  --paper:      #F6F6F3;
+  --paper-dim:  #EFEFEA;
+  --ink:        #131313;
+  --ink-soft:   #6B6B64;
+  --line:       #DBD9D1;
+  --accent:     #1F3A93;
+
+  --font-display: 'Fraunces', Georgia, serif;
+  --font-mono:    'IBM Plex Mono', 'Courier New', monospace;
+  --font-sans:    'Inter', -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif;
+
+  --gutter-landscape: 18vw;
+  --gutter-portrait: 10vw;
+  --gutter: var(--gutter-landscape);
+  --nav-height: 5.5rem;
+  --nav-link-gap: 0.5rem;
+  --content-gap: calc(var(--nav-link-gap) * 4.2);
+  --content-gap-lg: calc(var(--content-gap) * 0.8);
+  --image-gap: clamp(1rem, 3vw, 1.5rem);
+  --title-image-max-height: min(48svh, 32rem);
+
+  --step-0: clamp(0.9rem, 0.86rem + 0.2vw, 1rem);
+  --step-1: clamp(1.1rem, 1rem + 0.5vw, 1.4rem);
+  --step-2: clamp(1.6rem, 1.3rem + 1.2vw, 2.4rem);
+  --step-3: clamp(2.2rem, 1.7rem + 2.2vw, 3.6rem);
+}
+
+@media (orientation: portrait) {
+  :root {
+    --gutter: var(--gutter-portrait);
+  }
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html { color-scheme: light; }
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-mono);
+  font-size: var(--step-0);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3 {
+  font-family: var(--font-display);
+  font-weight: 500;
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+
+a { color: inherit; text-decoration: none; }
+img { max-width: 100%; display: block; }
+
+button {
+  font-family: inherit;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: inherit;
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+/* -- Layout -------------------------------------------------------------- */
+
+.site-nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 20;
+  background: var(--paper);
+  padding: 1rem var(--gutter) var(--nav-link-gap);
+  text-align: center;
+  min-height: 4.75rem;
+  box-sizing: border-box;
+  opacity: 0;
+  transform: translateY(-14px);
+  pointer-events: none;
+  transition: opacity 0.7s ease, transform 0.7s ease;
+}
+
+.site-nav.is-visible {
+  opacity: 1;
+  transform: none;
+  pointer-events: auto;
+}
+
+.site-nav.page-leaving {
+  opacity: 0;
+  transform: translateY(-14px);
+  pointer-events: none;
+}
+
+.site-nav::after {
+  content: '';
+  position: absolute;
+  left: var(--gutter);
+  right: var(--gutter);
+  bottom: 0;
+  height: 1px;
+  background: var(--line);
+}
+
+.site-nav__name {
+  display: block;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: var(--step-1);
+  font-weight: 400;
+  letter-spacing: 0.06em;
+  line-height: 1.2;
+  color: var(--ink);
+  margin-bottom: 0.2rem;
+  transition: color 0.25s ease;
+}
+
+.site-nav__name:hover,
+.site-nav__name:focus-visible {
+  color: var(--ink-soft);
+}
+
+.site-nav__links {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  min-height: 2rem;
+}
+
+.site-nav__primary {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  overflow: hidden;
+  max-width: 20rem;
+  opacity: 1;
+  transition: max-width 0.35s ease, opacity 0.25s ease, margin 0.35s ease;
+}
+
+.site-nav__links.is-searching .site-nav__primary {
+  max-width: 0;
+  opacity: 0;
+  margin: 0;
+  pointer-events: none;
+}
+
+.site-nav__link {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  white-space: nowrap;
+}
+
+/* TEMPORARY: About link hidden site-wide. Delete this rule to bring it back. */
+.site-nav__link--about {
+  display: none;
+}
+
+.site-nav__link:hover,
+.site-nav__link:focus-visible {
+  color: var(--ink);
+}
+
+.site-nav a:not(.site-nav__name) {
+  text-decoration: none;
+  background-image: linear-gradient(currentColor, currentColor);
+  background-repeat: no-repeat;
+  background-position: center bottom;
+  background-size: 0 1px;
+  transition:
+    color 0.2s ease,
+    background-size 0.28s ease;
+}
+
+.site-nav a:not(.site-nav__name):hover,
+.site-nav a:not(.site-nav__name):focus-visible {
+  background-size: 100% 1px;
+}
+
+/* -- Self-contained expanding search box, modeled on a classic
+      "grow in place + crossfade icon/input" search interaction -- */
+
+.site-nav__search-group {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  padding-right: 0;
+  transition: padding-right 0.4s ease;
+}
+
+.site-nav__links.is-searching .site-nav__search-group {
+  padding-right: 2.4rem;
+}
+
+.site-nav__search {
+  position: relative;
+  display: flex;
+  align-items: center;
+  height: 2rem;
+  width: 4rem;
+  overflow: hidden;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  transition: width 0.4s ease, border-color 0.25s ease;
+}
+
+.site-nav__links.is-searching .site-nav__search {
+  width: min(320px, 55vw);
+  border-color: var(--ink-soft);
+}
+
+.site-nav__search-label {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  white-space: nowrap;
+  text-decoration: none;
+  background-image: linear-gradient(currentColor, currentColor);
+  background-repeat: no-repeat;
+  background-position: center bottom;
+  background-size: 0 1px;
+  transition:
+    opacity 0.25s ease,
+    color 0.2s ease,
+    background-size 0.28s ease;
+}
+
+.site-nav__search-label:hover,
+.site-nav__search-label:focus-visible {
+  color: var(--ink);
+  background-size: 100% 1px;
+}
+
+.site-nav__links.is-searching .site-nav__search-label {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.site-nav__search-close {
+  position: absolute;
+  top: 50%;
+  right: 0;
+  transform: translateY(-50%) scale(0.6);
+  flex-shrink: 0;
+  width: 1.8rem;
+  height: 1.8rem;
+  border-radius: 50%;
+  border: 1px solid var(--ink-soft);
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono);
+  font-size: 0.9rem;
+  color: var(--ink-soft);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease, transform 0.25s ease, background-color 0.2s ease, color 0.2s ease;
+}
+
+.site-nav__search-close:hover,
+.site-nav__search-close:focus-visible {
+  background: var(--ink);
+  color: var(--paper);
+}
+
+.site-nav__links.is-searching .site-nav__search-close {
+  opacity: 1;
+  transform: translateY(-50%) scale(1);
+  pointer-events: auto;
+}
+
+.site-nav__search-input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  padding: 0 1.2rem;
+  border: none;
+  background: transparent;
+  color: var(--ink);
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  text-align: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+}
+
+.site-nav__search-input::-webkit-search-cancel-button,
+.site-nav__search-input::-webkit-search-decoration {
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.site-nav__search-input::-ms-clear {
+  display: none;
+}
+
+.site-nav__search-input::placeholder {
+  color: var(--ink-soft);
+}
+
+.site-nav__search-input:focus {
+  outline: none;
+  border-bottom-color: var(--accent);
+}
+
+.site-nav__links.is-searching .site-nav__search-input {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.page-scroll main {
+  padding-top: calc(var(--nav-height) + var(--content-gap));
+}
+
+main {
+  padding: clamp(1.5rem, 6vw, 4rem) var(--gutter);
+}
+
+.site-footer {
+  position: relative;
+  padding: 1.25rem var(--gutter);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  color: var(--ink-soft);
+}
+
+.site-footer::before {
+  content: '';
+  position: absolute;
+  left: var(--gutter);
+  right: var(--gutter);
+  top: 0;
+  height: 1px;
+  background: var(--line);
+}
+
+/* -- Scroll fade-in --------------------------------------------------------
+   Elements start slightly lower and transparent, then settle into place
+   the first time they scroll into view. One-time reveal, not a toggle.
+   ------------------------------------------------------------------------ */
+
+.fade-in {
+  opacity: 0;
+  transform: translateY(28px);
+  transition: opacity 1.2s ease, transform 1.2s ease;
+}
+
+.fade-in.is-visible {
+  opacity: 1;
+  transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fade-in {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}
+
+/* -- Page transitions -------------------------------------------------------
+   Nav and main content move in opposite directions on both ends of a
+   navigation, meeting in the middle on entrance and pulling apart on
+   exit — nav up / content down leaving, nav down / content up
+   arriving. See initPageTransitions() in include-partials.js.
+   ------------------------------------------------------------------------ */
+
+main {
+  transition: opacity 0.7s ease, transform 0.7s ease;
+}
+
+main.page-enter,
+main.page-leaving {
+  opacity: 0;
+  transform: translateY(24px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  main {
+    transition: none;
+  }
+}
+
+/* -- Splash (index intro) --------------------------------------------------
+   True fixed full-screen overlay controlled by a hidden checkbox. While
+   unchecked, <body> has nothing scrollable at all (overflow: hidden),
+   so no partial scroll can ever leak through — there's simply nothing
+   to scroll. Checking the box (via the label/button, or JS on first
+   scroll/key input) slides the whole overlay away with one CSS
+   transform transition. .page-scroll underneath is the real,
+   independent scrollable container, already in place from the start.
+   ------------------------------------------------------------------------ */
+
+html, body {
+  height: 100%;
+}
+
+body:has(.splash) {
+  overflow: hidden;
+}
+
+.splash-unlock {
+  position: fixed;
+  top: -9999px;
+  left: -9999px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.splash {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background: #000;
+  transition: transform 0.6s ease;
+}
+
+@keyframes splash-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.splash-unlock:checked ~ .splash {
+  transform: translateY(-100%);
+  pointer-events: none;
+}
+
+.page-scroll {
+  height: 100%;
+  overflow-y: auto;
+  scroll-padding-top: calc(var(--nav-height) + var(--content-gap));
+}
+
+.splash__images {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  animation: splash-fade-in 1s ease both;
+}
+
+.splash__image {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  transition: opacity 1.4s ease;
+}
+
+.splash__image.is-active {
+  opacity: 1;
+}
+
+.splash__video {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.splash__overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: rgba(0, 0, 0, 0.4);
+}
+
+.splash:has(.splash__video) .splash__overlay {
+  background: transparent;
+}
+
+.splash__content {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  animation: splash-fade-in 1s ease both;
+}
+
+.splash__name {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 100%;
+  color: #fff;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-weight: 400;
+  font-size: clamp(2rem, 4vw + 1rem, 4.5rem);
+  letter-spacing: 0.06em;
+  line-height: 1;
+  text-align: center;
+  margin: 0;
+  padding: 0 1rem;
+  transform: translate(-50%, -50%);
+}
+
+.splash__cta {
+  position: absolute;
+  top: 83.3333%;
+  left: 50%;
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  border-radius: 10px;
+  padding: 0.7rem 1.6rem;
+  cursor: pointer;
+  transform: translate(-50%, -50%);
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+
+.splash__cta:hover,
+.splash__cta:focus-visible {
+  background: #fff;
+  color: var(--ink);
+  border-color: #fff;
+}
+
+.splash--black-text .splash__name {
+  color: #000;
+}
+
+.splash--black-text .splash__cta {
+  border-color: #000;
+  background: #fff;
+  color: #000;
+}
+
+.splash--black-text .splash__cta:hover,
+.splash--black-text .splash__cta:focus-visible {
+  background: #000;
+  color: #fff;
+  border-color: #000;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .splash__image,
+  .splash__images,
+  .splash__content,
+  .splash {
+    animation: none;
+    transition: none;
+  }
+}
+
+/* -- Project grid ---------------------------------------------------------
+   Signature element: each cell is a wall label. On hover/focus a placard
+   rises from the bottom edge with catalogue info, like the card next to
+   a piece in a gallery.
+   ------------------------------------------------------------------------ */
+
+.project-grid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr); /* phones: minimum two columns */
+  gap: 20px;
+  scroll-margin-top: calc(var(--nav-height) + var(--content-gap));
+}
+
+@media (min-width: 900px) {
+  .project-grid {
+    grid-template-columns: repeat(3, 1fr); /* laptop and up: three columns */
+  }
+}
+
+.project-card {
+  position: relative;
+  aspect-ratio: 1 / 1;
+  overflow: hidden;
+  background: var(--paper-dim);
+  display: block;
+  border-radius: 10px;
+}
+
+.project-card__image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.5s ease, filter 0.5s ease;
+}
+
+.project-card:hover .project-card__image,
+.project-card:focus-visible .project-card__image {
+  transform: scale(1.03);
+  filter: saturate(0.6);
+}
+
+.project-card__title {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  padding: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  font-family: 'futura-pt', 'Futura PT', Jost, sans-serif;
+  font-size: 1rem;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #fff;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
+  background: rgba(0, 0, 0, 0.35);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.project-card:hover .project-card__title,
+.project-card:focus-visible .project-card__title {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .project-card__image,
+  .project-card__title {
+    transition: none;
+  }
+}
+
+/* -- Project detail page --------------------------------------------------
+   Everything — hero, gallery images, and text — shares the same outer
+   margin as the rest of the site (the default `main` padding below).
+   Images have square corners, no separate inset. Body copy uses a plain
+   readable sans (not the mono/display pairing used for the grid), set
+   in a genuine two-column reading flow.
+   ------------------------------------------------------------------------ */
+
+main.project {
+  padding-top: calc(var(--nav-height) + var(--content-gap));
+}
+
+.project-image {
+  margin: 0 0 var(--image-gap);
+}
+
+.project-image img {
+  width: 100%;
+  max-height: 90vh;
+  object-fit: cover;
+  display: block;
+  border-radius: 10px;
+}
+
+.project-image video {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 90vh;
+  object-fit: contain;
+  border-radius: 10px;
+  background: #000;
+}
+
+/* Gallery images always extend to both page margins. Portrait images
+   keep their full aspect ratio and grow vertically instead of being
+   cropped to the viewport height. */
+.project-gallery .project-image img {
+  width: 100%;
+  height: auto;
+  max-height: none;
+  object-fit: contain;
+}
+
+.project-title-images {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  gap: var(--image-gap);
+  margin: 0 0 var(--content-gap);
+}
+
+.project-title-images .project-image {
+  flex: 0 1 auto;
+  width: auto;
+  height: auto;
+  max-height: var(--title-image-max-height);
+  aspect-ratio: 3 / 4;
+  overflow: hidden;
+  margin: 0;
+}
+
+.project-title-images .project-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Two title images on a portrait screen: show only the first, rather
+   than stacking both or squeezing them side by side. */
+@media (orientation: portrait) {
+  .project-title-images:not(.project-title-images--single) .project-image:nth-child(2) {
+    display: none;
+  }
+}
+
+/* A single title image is assumed landscape — no forced portrait crop,
+   sized like any other full-width image (same margins as everything
+   else), not centered/narrowed. */
+.project-title-images--single {
+  display: block;
+  margin: 0 0 var(--content-gap);
+}
+
+.project-title-images--single .project-image {
+  aspect-ratio: auto;
+  max-height: none;
+  overflow: visible;
+}
+
+.project-title-images--single .project-image img {
+  height: auto;
+  object-fit: initial;
+}
+
+/*
+ * On landscape screens, keep the title image full-width but crop its
+ * top and bottom when necessary so the project heading remains visible
+ * within the initial viewport.
+ */
+@media (orientation: landscape) {
+  .project-title-images--single .project-image {
+    width: 100%;
+    height: min(75svh, 60rem);
+    max-height: min(75svh, 60rem);
+    overflow: hidden;
+  }
+
+  .project-title-images--single .project-image img {
+    width: 100%;
+    height: 100%;
+    max-height: none;
+    object-fit: cover;
+    object-position: center;
+  }
+}
+
+.project-header {
+  margin: 0 0 var(--content-gap-lg);
+  text-align: center;
+}
+
+.project-title-line {
+  font-family: var(--font-sans);
+  font-size: var(--step-1);
+  margin: 0 0 0.35rem;
+}
+
+.project-client-line {
+  font-family: var(--font-sans);
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+  margin: 0;
+}
+
+.project-title-line strong {
+  font-weight: 600;
+}
+
+.project-columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--image-gap);
+  margin-bottom: var(--content-gap-lg);
+}
+
+.project-columns--single {
+  grid-template-columns: 1fr;
+}
+
+.project-columns--empty {
+  display: none;
+}
+
+@media (max-width: 700px) {
+  .project-columns {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+}
+
+.project-col p {
+  font-family: var(--font-sans);
+  font-size: 1rem;
+  line-height: 1.7;
+  color: var(--ink);
+  margin: 0 0 1.4rem;
+}
+
+/* Links inserted in Markdown descriptions with
+   [[visible text|target project]]. */
+.project-description__link,
+.project-description__link:visited {
+  color: #55758f;
+  text-decoration: none;
+  background-image: linear-gradient(currentColor, currentColor);
+  background-repeat: no-repeat;
+  background-position: center bottom;
+  background-size: 0 1px;
+  transition:
+    color 0.2s ease,
+    background-size 0.28s ease;
+}
+
+.project-description__link:hover,
+.project-description__link:focus-visible {
+  color: #315f85;
+  background-size: 100% 1px;
+}
+
+.project-facts {
+  list-style: none;
+  margin: 0 0 1.5rem;
+  padding: 0;
+  font-family: var(--font-sans);
+  font-size: 1rem;
+  line-height: 1.8;
+}
+
+.project-facts li {
+  margin: 0;
+}
+
+.project-facts strong {
+  font-weight: 600;
+}

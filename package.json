@@ -1,0 +1,10 @@
+{
+  "name": "andrei-smolik-portfolio",
+  "private": true,
+  "scripts": {
+    "generate": "node build/generate.js"
+  },
+  "dependencies": {
+    "sharp": "^0.34.3"
+  }
+}

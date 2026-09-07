@@ -1,0 +1,147 @@
+<!--
+  build/templates/index.template.html
+
+  Template for the whole index page. generate.js reads this file,
+  fills the double-curly-brace placeholders, repeats the project tile
+  block once per discovered project, and writes the result to
+  /index.html in the site root — replacing it entirely on every run.
+
+  Splash images are built from real project images (link_image +
+  title_images of every project), interleaved so no two in a row come
+  from the same project. See buildSplashImages() in generate.js.
+
+  Marker convention (see the tile block below for a real example in
+  context): EACH-blocks repeat their content once per item in a list,
+  substituting tokens per item.
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{{SITE_NAME}} — Index</title>
+  <meta name="description" content="Selected works." />
+  <link rel="icon" type="image/png" href="favicon.png?v=2" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <input type="checkbox" id="splashUnlock" class="splash-unlock" />
+
+  <script>
+    if (window.location.hash === '#projects') {
+      document.getElementById('splashUnlock').checked = true;
+    }
+  </script>
+
+  <section
+    class="splash{{SPLASH_TEXT_CLASS}}"
+    id="splash"
+    tabindex="0"
+  >
+    <div class="splash__images">
+
+      <!-- EACH:SPLASH_IMAGE -->
+      <img
+        class="splash__image{{SPLASH_IMAGE_ACTIVE_CLASS}}"
+        src="{{SPLASH_IMAGE_SRC}}"
+        srcset="{{SPLASH_IMAGE_SRCSET}}"
+        sizes="100vw"
+        alt=""
+      />
+      <!-- END:SPLASH_IMAGE -->
+
+      <!-- IF:SPLASH_VIDEO -->
+      <video
+        class="splash__video"
+        autoplay
+        muted
+        loop
+        playsinline
+        preload="auto"
+        aria-hidden="true"
+      >
+        <source
+          src="{{SPLASH_VIDEO_SRC}}"
+          type="video/mp4"
+        />
+      </video>
+      <!-- END:SPLASH_VIDEO -->
+
+    </div>
+
+    <div class="splash__overlay"></div>
+
+    <div class="splash__content">
+      <h1
+        class="splash__name"
+        data-site-name
+      >
+        {{SITE_NAME}}
+      </h1>
+
+      <label
+        for="splashUnlock"
+        class="splash__cta"
+      >
+        Portfolio
+      </label>
+    </div>
+  </section>
+
+  <div
+    class="page-scroll"
+    id="pageScroll"
+  >
+    <div data-include="nav.html"></div>
+
+    <main>
+      <ul
+        class="project-grid"
+        id="projects"
+      >
+        <!-- EACH:PROJECT -->
+        <li>
+          <a
+            class="project-card fade-in"
+            href="{{PROJECT_HREF}}"
+            aria-label="Open {{PROJECT_TITLE}}"
+            data-search="{{PROJECT_SEARCH_TERMS}}"
+          >
+            <img
+              class="project-card__image"
+              src="{{PROJECT_COVER_SRC}}"
+              srcset="{{PROJECT_COVER_SRCSET}}"
+              sizes="(min-width: 900px) 33vw, 50vw"
+              alt=""
+              loading="lazy"
+              decoding="async"
+            />
+
+            <span class="project-card__title">
+              {{PROJECT_TITLE}}
+            </span>
+          </a>
+        </li>
+        <!-- END:PROJECT -->
+      </ul>
+    </main>
+
+    <footer class="site-footer">
+      <span>
+        &copy;
+        <span id="year"></span>
+        <span data-site-name>{{SITE_NAME}}</span>
+      </span>
+    </footer>
+  </div>
+
+  <script src="include-partials.js"></script>
+
+  <script>
+    document.getElementById('year').textContent =
+      new Date().getFullYear();
+  </script>
+
+</body>
+</html>
