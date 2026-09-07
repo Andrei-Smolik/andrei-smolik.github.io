@@ -185,6 +185,7 @@ button {
   text-align: center;
 
   opacity: 0;
+
   transform:
     translateY(-14px);
 
@@ -716,6 +717,14 @@ body:has(.splash) {
     both;
 }
 
+/* Never display splash images when
+   the video option is present. */
+
+.splash:has(.splash__video)
+.splash__images {
+  display: none;
+}
+
 .splash__image {
   position: absolute;
   inset: 0;
@@ -899,14 +908,16 @@ body:has(.splash) {
 
 .project-grid {
   display: grid;
+
   grid-template-columns:
     repeat(
       2,
-      1fr
+      minmax(0, 1fr)
     );
 
   gap: 20px;
 
+  width: 100%;
   margin: 0;
   padding: 0;
 
@@ -924,29 +935,23 @@ body:has(.splash) {
     grid-template-columns:
       repeat(
         3,
-        1fr
+        minmax(0, 1fr)
       );
   }
 }
 
-  @media (max-width: 700px) {
+@media (max-width: 700px) {
   .project-grid {
     gap: 8px;
   }
 }
-  
-
-  .project-grid {
-    gap: 8px;
-  }
-
-
-
 
 .project-card {
   position: relative;
 
   display: block;
+  width: 100%;
+  min-width: 0;
   overflow: hidden;
 
   aspect-ratio: 1 / 1;
@@ -1227,7 +1232,7 @@ main.project {
   grid-template-columns:
     1fr 1fr;
 
-  gap: var(--image-gap);
+  gap: 3rem;
 
   margin-bottom:
     var(--content-gap-lg);
@@ -1325,11 +1330,18 @@ main.project {
 .back-to-top {
   position: fixed;
   left: 50%;
-  bottom: clamp(1.25rem, 3vw, 2rem);
+  right: auto;
+  bottom:
+    clamp(
+      1.25rem,
+      3vw,
+      2rem
+    );
+
   z-index: 40;
 
   display: inline-block;
-  padding: 0.35rem 10rem;
+  padding: 0.35rem 1.6rem;
 
   border: 1px solid var(--ink);
   border-radius: 10px;
@@ -1349,7 +1361,10 @@ main.project {
   pointer-events: none;
 
   transform:
-    translate(-50%, 0.5rem);
+    translate(
+      -50%,
+      0.5rem
+    );
 
   transition:
     opacity 0.25s ease,
@@ -1366,7 +1381,10 @@ main.project {
   pointer-events: auto;
 
   transform:
-    translate(-50%, 0);
+    translate(
+      -50%,
+      0
+    );
 }
 
 .back-to-top:hover,
