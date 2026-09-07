@@ -930,16 +930,17 @@ body:has(.splash) {
 }
 
   @media (max-width: 700px) {
-  .page-scroll main:not(.project) {
-    padding-right: 5vw;
-    padding-left: 5vw;
+  .project-grid {
+    gap: 8px;
   }
+}
+  
 
   .project-grid {
     gap: 8px;
   }
 
-}
+
 
 
 .project-card {
