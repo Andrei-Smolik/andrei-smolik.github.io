@@ -1,10 +1,20 @@
 /**
  * include-partials.js
  *
- * Loads shared HTML partials and initializes navigation,
- * splash behaviour, page transitions, search, scroll
- * animations, videos, and the back-to-top button.
+ * Shared page behaviour:
+ *
+ * - Loads shared HTML partials.
+ * - Configures navigation and search.
+ * - Controls the splash screen and splash video.
+ * - Handles page transitions.
+ * - Reveals content while scrolling.
+ * - Controls project videos.
+ * - Controls the back button.
  */
+
+/* --------------------------------------------------------------------------
+   Shared HTML partials
+   -------------------------------------------------------------------------- */
 
 async function includePartials() {
   const slots =
@@ -15,14 +25,14 @@ async function includePartials() {
   await Promise.all(
     Array.from(slots).map(
       async (slot) => {
-        const includePath =
+        const path =
           slot.getAttribute(
             'data-include'
           );
 
         try {
           const response =
-            await fetch(includePath);
+            await fetch(path);
 
           if (!response.ok) {
             throw new Error(
@@ -35,7 +45,8 @@ async function includePartials() {
             await response.text();
         } catch (error) {
           console.error(
-            `Failed to include partial "${includePath}":`,
+            `Failed to include partial ` +
+            `"${path}":`,
             error
           );
 
@@ -46,9 +57,9 @@ async function includePartials() {
   );
 }
 
-/* ------------------------------------------------------------------
-   Navigation search
-   ------------------------------------------------------------------ */
+/* --------------------------------------------------------------------------
+   Navigation search interface
+   -------------------------------------------------------------------------- */
 
 function initNavSearch() {
   const links =
@@ -122,9 +133,9 @@ function initNavSearch() {
   );
 }
 
-/* ------------------------------------------------------------------
+/* --------------------------------------------------------------------------
    Site configuration
-   ------------------------------------------------------------------ */
+   -------------------------------------------------------------------------- */
 
 async function initContactLinks() {
   try {
@@ -168,18 +179,24 @@ async function initContactLinks() {
 
         const key =
           trimmed
-            .slice(0, equalsIndex)
+            .slice(
+              0,
+              equalsIndex
+            )
             .trim();
 
         let value =
           trimmed
-            .slice(equalsIndex + 1)
+            .slice(
+              equalsIndex + 1
+            )
             .trim();
 
-        value = value.replace(
-          /^["'](.*)["']$/,
-          '$1'
-        );
+        value =
+          value.replace(
+            /^["'](.*)["']$/,
+            '$1'
+          );
 
         config[key] = value;
       });
@@ -224,17 +241,17 @@ async function initContactLinks() {
   }
 }
 
-/* ------------------------------------------------------------------
-   Page-specific navigation
-   ------------------------------------------------------------------ */
+/* --------------------------------------------------------------------------
+   Page detection
+   -------------------------------------------------------------------------- */
 
 function isIndexPage() {
-  const pagePath =
+  const path =
     window.location.pathname;
 
   return (
-    pagePath === '/' ||
-    pagePath.endsWith(
+    path === '/' ||
+    path.endsWith(
       '/index.html'
     )
   );
@@ -270,9 +287,9 @@ function hideSearchOffIndex() {
   }
 }
 
-/* ------------------------------------------------------------------
+/* --------------------------------------------------------------------------
    Project search
-   ------------------------------------------------------------------ */
+   -------------------------------------------------------------------------- */
 
 function initProjectSearch() {
   const grid =
@@ -305,31 +322,32 @@ function initProjectSearch() {
           .toLowerCase();
 
       cards.forEach((card) => {
-        const searchableText = (
-          card.dataset.search ||
-          card.textContent
-        ).toLowerCase();
+        const searchText =
+          (
+            card.dataset.search ||
+            card.textContent
+          ).toLowerCase();
 
         const matches =
           !query ||
-          searchableText.includes(
-            query
-          );
+          searchText.includes(query);
 
         const item =
           card.closest('li') ||
           card;
 
         item.style.display =
-          matches ? '' : 'none';
+          matches
+            ? ''
+            : 'none';
       });
     }
   );
 }
 
-/* ------------------------------------------------------------------
-   Splash screen
-   ------------------------------------------------------------------ */
+/* --------------------------------------------------------------------------
+   Splash images
+   -------------------------------------------------------------------------- */
 
 function initSplashRotation() {
   const images =
@@ -343,24 +361,31 @@ function initSplashRotation() {
 
   let currentIndex = 0;
 
-  window.setInterval(() => {
-    images[currentIndex]
-      .classList.remove(
-        'is-active'
-      );
+  window.setInterval(
+    () => {
+      images[currentIndex]
+        .classList.remove(
+          'is-active'
+        );
 
-    currentIndex =
-      (
-        currentIndex + 1
-      ) %
-      images.length;
+      currentIndex =
+        (
+          currentIndex + 1
+        ) %
+        images.length;
 
-    images[currentIndex]
-      .classList.add(
-        'is-active'
-      );
-  }, 5000);
+      images[currentIndex]
+        .classList.add(
+          'is-active'
+        );
+    },
+    5000
+  );
 }
+
+/* --------------------------------------------------------------------------
+   Splash video
+   -------------------------------------------------------------------------- */
 
 function initSplashVideo() {
   const video =
@@ -382,12 +407,31 @@ function initSplashVideo() {
       'source'
     );
 
+  video.defaultMuted = true;
   video.muted = true;
+  video.playsInline = true;
 
   function playVideo() {
-    video
-      .play()
-      .catch(() => {});
+    const playRequest =
+      video.play();
+
+    if (
+      playRequest &&
+      typeof playRequest.catch ===
+      'function'
+    ) {
+      playRequest.catch(() => {
+        /*
+         * Autoplay may temporarily be
+         * blocked. The next interaction
+         * will try again.
+         */
+      });
+    }
+  }
+
+  function removeFailedVideo() {
+    video.remove();
   }
 
   if (checkbox?.checked) {
@@ -395,6 +439,34 @@ function initSplashVideo() {
   } else {
     playVideo();
   }
+
+  video.addEventListener(
+    'loadeddata',
+    () => {
+      if (!checkbox?.checked) {
+        playVideo();
+      }
+    }
+  );
+
+  video.addEventListener(
+    'canplay',
+    () => {
+      if (!checkbox?.checked) {
+        playVideo();
+      }
+    }
+  );
+
+  video.addEventListener(
+    'error',
+    removeFailedVideo
+  );
+
+  source?.addEventListener(
+    'error',
+    removeFailedVideo
+  );
 
   checkbox?.addEventListener(
     'change',
@@ -407,13 +479,23 @@ function initSplashVideo() {
     }
   );
 
-  source?.addEventListener(
-    'error',
+  document.addEventListener(
+    'touchstart',
     () => {
-      video.remove();
+      if (!checkbox?.checked) {
+        playVideo();
+      }
+    },
+    {
+      passive: true,
+      once: true,
     }
   );
 }
+
+/* --------------------------------------------------------------------------
+   Splash scroll and keyboard trigger
+   -------------------------------------------------------------------------- */
 
 function initSplashScrollTrigger() {
   const splash =
@@ -430,7 +512,7 @@ function initSplashScrollTrigger() {
     return;
   }
 
-  function unlockSplash() {
+  function triggerSplash() {
     if (checkbox.checked) {
       return;
     }
@@ -444,14 +526,18 @@ function initSplashScrollTrigger() {
 
   splash.addEventListener(
     'wheel',
-    unlockSplash,
-    { passive: true }
+    triggerSplash,
+    {
+      passive: true,
+    }
   );
 
   splash.addEventListener(
     'touchmove',
-    unlockSplash,
-    { passive: true }
+    triggerSplash,
+    {
+      passive: true,
+    }
   );
 
   splash.addEventListener(
@@ -468,18 +554,18 @@ function initSplashScrollTrigger() {
           event.key
         )
       ) {
-        unlockSplash();
+        triggerSplash();
       }
     }
   );
 }
 
-/* ------------------------------------------------------------------
-   Page transitions
-   ------------------------------------------------------------------ */
+/* --------------------------------------------------------------------------
+   Page entrance
+   -------------------------------------------------------------------------- */
 
 function initPageEntrance() {
-  const nav =
+  const navigation =
     document.querySelector(
       '.site-nav'
     );
@@ -490,7 +576,7 @@ function initPageEntrance() {
     );
 
   function revealPage() {
-    nav?.classList.add(
+    navigation?.classList.add(
       'is-visible'
     );
 
@@ -531,10 +617,15 @@ function initPageEntrance() {
   );
 }
 
-const PAGE_EXIT_DURATION_MS = 700;
+/* --------------------------------------------------------------------------
+   Page exit
+   -------------------------------------------------------------------------- */
+
+const PAGE_EXIT_DURATION_MS =
+  700;
 
 function initPageExitTransition() {
-  const nav =
+  const navigation =
     document.querySelector(
       '.site-nav'
     );
@@ -576,14 +667,18 @@ function initPageExitTransition() {
         href.startsWith(
           'mailto:'
         ) ||
-        /^https?:\/\//.test(href)
+        href.startsWith(
+          'tel:'
+        ) ||
+        /^(?:https?:)?\/\//i
+          .test(href)
       ) {
         return;
       }
 
       event.preventDefault();
 
-      nav?.classList.add(
+      navigation?.classList.add(
         'page-leaving'
       );
 
@@ -591,31 +686,34 @@ function initPageExitTransition() {
         'page-leaving'
       );
 
-      window.setTimeout(() => {
-        window.location.href =
-          href;
-      }, PAGE_EXIT_DURATION_MS);
+      window.setTimeout(
+        () => {
+          window.location.href =
+            href;
+        },
+        PAGE_EXIT_DURATION_MS
+      );
     }
   );
 }
 
-/* ------------------------------------------------------------------
-   Navigation sizing
-   ------------------------------------------------------------------ */
+/* --------------------------------------------------------------------------
+   Navigation height
+   -------------------------------------------------------------------------- */
 
 function initNavHeightSync() {
-  const nav =
+  const navigation =
     document.querySelector(
       '.site-nav'
     );
 
-  if (!nav) {
+  if (!navigation) {
     return;
   }
 
   function syncHeight() {
-    const navHeight =
-      nav
+    const height =
+      navigation
         .getBoundingClientRect()
         .height;
 
@@ -623,7 +721,7 @@ function initNavHeightSync() {
       .style
       .setProperty(
         '--nav-height',
-        `${navHeight}px`
+        `${height}px`
       );
   }
 
@@ -635,14 +733,68 @@ function initNavHeightSync() {
   );
 }
 
-/* ------------------------------------------------------------------
+/* --------------------------------------------------------------------------
+   Index scroll reset
+   -------------------------------------------------------------------------- */
+
+function resetIndexScrollOnProjectReturn() {
+  if (
+    !isIndexPage() ||
+    window.location.hash !==
+      '#projects'
+  ) {
+    return;
+  }
+
+  const pageScroll =
+    document.getElementById(
+      'pageScroll'
+    );
+
+  if (!pageScroll) {
+    return;
+  }
+
+  function resetScroll() {
+    pageScroll.scrollTop = 0;
+  }
+
+  requestAnimationFrame(() => {
+    requestAnimationFrame(
+      resetScroll
+    );
+  });
+
+  window.addEventListener(
+    'pageshow',
+    resetScroll
+  );
+}
+
+/* --------------------------------------------------------------------------
    Scroll fade-in
-   ------------------------------------------------------------------ */
+   -------------------------------------------------------------------------- */
+
+/**
+ * On phones:
+ *
+ * - Index tiles already inside the first visible
+ *   screen appear immediately.
+ * - Later index tiles fade in while approaching
+ *   the viewport.
+ *
+ * On project pages and larger screens:
+ *
+ * - All fade-in elements retain their normal
+ *   scroll-triggered animation.
+ */
 
 function initScrollFadeIn() {
   const elements =
-    document.querySelectorAll(
-      '.fade-in'
+    Array.from(
+      document.querySelectorAll(
+        '.fade-in'
+      )
     );
 
   if (elements.length === 0) {
@@ -665,6 +817,16 @@ function initScrollFadeIn() {
 
     return;
   }
+
+  const isPhone =
+    window.matchMedia(
+      '(max-width: 700px)'
+    ).matches;
+
+  const pageScroll =
+    document.getElementById(
+      'pageScroll'
+    );
 
   const observer =
     new IntersectionObserver(
@@ -689,93 +851,61 @@ function initScrollFadeIn() {
         );
       },
       {
-        threshold: 0.01,
-        rootMargin: '0px 0px 30% 0px',
+        root:
+          pageScroll ||
+          null,
+
+        threshold:
+          0.01,
+
+        rootMargin:
+          '0px 0px 25% 0px',
       }
     );
 
+  const firstScreenBottom =
+    pageScroll
+      ? pageScroll
+          .getBoundingClientRect()
+          .bottom
+      : window.innerHeight;
+
   elements.forEach(
     (element) => {
-      observer.observe(
+      const isIndexTile =
+        element.matches(
+          '.project-grid .fade-in'
+        );
+
+      const elementTop =
         element
-      );
+          .getBoundingClientRect()
+          .top;
+
+      const isOnFirstScreen =
+        elementTop <
+        firstScreenBottom;
+
+      if (
+        isPhone &&
+        isIndexTile &&
+        isOnFirstScreen
+      ) {
+        element.classList.add(
+          'is-visible'
+        );
+
+        return;
+      }
+
+      observer.observe(element);
     }
   );
 }
 
-/* ------------------------------------------------------------------
-   Back to top
-   ------------------------------------------------------------------ */
-
-function initBackToTop() {
-  const pageScroll =
-    document.getElementById(
-      'pageScroll'
-    );
-
-  const button =
-    document.getElementById(
-      'backToTop'
-    );
-
-  if (!pageScroll || !button) {
-    return;
-  }
-
-  const reducedMotion =
-    window.matchMedia(
-      '(prefers-reduced-motion: reduce)'
-    );
-
-  function updateVisibility() {
-    const showButton =
-  pageScroll.scrollTop > 600;
-
-    button.classList.toggle(
-      'is-visible',
-      showButton
-    );
-
-    button.setAttribute(
-      'aria-hidden',
-      String(!showButton)
-    );
-
-    button.tabIndex =
-      showButton ? 0 : -1;
-  }
-
-  pageScroll.addEventListener(
-    'scroll',
-    updateVisibility,
-    { passive: true }
-  );
-
-  window.addEventListener(
-    'resize',
-    updateVisibility
-  );
-
-  button.addEventListener(
-    'click',
-    () => {
-      pageScroll.scrollTo({
-        top: 0,
-        left: 0,
-        behavior:
-          reducedMotion.matches
-            ? 'auto'
-            : 'smooth',
-      });
-    }
-  );
-
-  updateVisibility();
-}
-
-/* ------------------------------------------------------------------
-   Project videos
-   ------------------------------------------------------------------ */
+/* --------------------------------------------------------------------------
+   Project video autoplay
+   -------------------------------------------------------------------------- */
 
 function initVideosInView() {
   const videos =
@@ -806,6 +936,11 @@ function initVideosInView() {
     return;
   }
 
+  const pageScroll =
+    document.getElementById(
+      'pageScroll'
+    );
+
   const observer =
     new IntersectionObserver(
       (entries) => {
@@ -829,10 +964,15 @@ function initVideosInView() {
         );
       },
       {
-        threshold: [
-          0,
-          0.35,
-        ],
+        root:
+          pageScroll ||
+          null,
+
+        threshold:
+          [
+            0,
+            0.35,
+          ],
       }
     );
 
@@ -840,6 +980,10 @@ function initVideosInView() {
     observer.observe(video);
   });
 }
+
+/* --------------------------------------------------------------------------
+   Project video controls
+   -------------------------------------------------------------------------- */
 
 function initProjectVideoControls() {
   const videos =
@@ -853,7 +997,8 @@ function initProjectVideoControls() {
 
   const supportsHover =
     window.matchMedia(
-      '(hover: hover) and (pointer: fine)'
+      '(hover: hover) and ' +
+      '(pointer: fine)'
     ).matches;
 
   videos.forEach((video) => {
@@ -894,27 +1039,126 @@ function initProjectVideoControls() {
   });
 }
 
-/* ------------------------------------------------------------------
-   Initialization
-   ------------------------------------------------------------------ */
+/* --------------------------------------------------------------------------
+   Back button
+   -------------------------------------------------------------------------- */
 
-initSplashRotation();
-initSplashVideo();
-initSplashScrollTrigger();
+function initBackToTop() {
+  const button =
+    document.getElementById(
+      'backToTop'
+    );
 
-includePartials().then(
-  async () => {
+  if (!button) {
+    return;
+  }
+
+  const pageScroll =
+    document.getElementById(
+      'pageScroll'
+    );
+
+  const scrollTarget =
+    pageScroll ||
+    window;
+
+  const reduceMotion =
+    window.matchMedia(
+      '(prefers-reduced-motion: reduce)'
+    ).matches;
+
+  function getScrollPosition() {
+    return pageScroll
+      ? pageScroll.scrollTop
+      : window.scrollY;
+  }
+
+  function updateButton() {
+    const revealDistance =
+      Math.max(
+        window.innerHeight,
+        700
+      );
+
+    const visible =
+      getScrollPosition() >
+      revealDistance;
+
+    button.classList.toggle(
+      'is-visible',
+      visible
+    );
+
+    button.setAttribute(
+      'aria-hidden',
+      visible
+        ? 'false'
+        : 'true'
+    );
+
+    button.tabIndex =
+      visible
+        ? 0
+        : -1;
+  }
+
+  button.addEventListener(
+    'click',
+    () => {
+      scrollTarget.scrollTo({
+        top: 0,
+
+        behavior:
+          reduceMotion
+            ? 'auto'
+            : 'smooth',
+      });
+    }
+  );
+
+  scrollTarget.addEventListener(
+    'scroll',
+    updateButton,
+    {
+      passive: true,
+    }
+  );
+
+  updateButton();
+}
+
+/* --------------------------------------------------------------------------
+   Initialise
+   -------------------------------------------------------------------------- */
+
+includePartials()
+  .then(async () => {
     initNavSearch();
+
     await initContactLinks();
+
     hidePortfolioLinkOnIndex();
     hideSearchOffIndex();
+
     initProjectSearch();
     initPageEntrance();
     initPageExitTransition();
     initNavHeightSync();
+
+    resetIndexScrollOnProjectReturn();
     initScrollFadeIn();
-    initBackToTop();
+
     initProjectVideoControls();
     initVideosInView();
-  }
-);
+    initBackToTop();
+  })
+  .catch((error) => {
+    console.error(
+      'Page initialisation failed:',
+      error
+    );
+  });
+
+initSplashRotation();
+initSplashVideo();
+initSplashScrollTrigger();
