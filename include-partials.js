@@ -861,7 +861,7 @@ includePartials().then(
     initPageEntrance();
     initPageExitTransition();
     initNavHeightSync();
-    resetIndexScrollOnProjectReturn();
+    //resetIndexScrollOnProjectReturn();
     initScrollFadeIn();
     initProjectVideoControls();
     initVideosInView();
