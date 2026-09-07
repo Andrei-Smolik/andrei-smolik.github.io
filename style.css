@@ -1491,3 +1491,27 @@ main.project {
     transition: none;
   }
 }
+
+/* Keep project titles visible on touch devices. */
+
+@media (hover: none) and (pointer: coarse) {
+  .project-card__title {
+    align-items: flex-end;
+    justify-content: flex-start;
+
+    padding: 0.8rem;
+
+    background:
+      linear-gradient(
+        to top,
+        rgba(0, 0, 0, 0.65),
+        rgba(0, 0, 0, 0) 55%
+      );
+
+    font-size: 0.7rem;
+    letter-spacing: 0.08em;
+    text-align: left;
+
+    opacity: 1;
+  }
+}
