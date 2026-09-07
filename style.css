@@ -925,7 +925,7 @@ body:has(.splash) {
 
 @media (max-width: 700px) {
   .project-grid {
-    gap: 8px;
+    gap: 15px;
   }
 }
 
