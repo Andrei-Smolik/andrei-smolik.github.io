@@ -78,7 +78,7 @@
   --step-2:
     clamp(
       1.6rem,
-      1.3rem + 1.2vw,
+      1.3.3rem + 1.2vw,
       2.4rem
     );
 
@@ -92,7 +92,8 @@
 
 @media (orientation: portrait) {
   :root {
-    --gutter: var(--gutter-portrait);
+    --gutter:
+      var(--gutter-portrait);
   }
 }
 
@@ -107,15 +108,12 @@
 }
 
 html {
+  height: 100%;
   color-scheme: light;
 }
 
-html,
 body {
   height: 100%;
-}
-
-body {
   margin: 0;
 
   background: var(--paper);
@@ -125,7 +123,8 @@ body {
   font-size: var(--step-0);
   line-height: 1.5;
 
-  -webkit-font-smoothing: antialiased;
+  -webkit-font-smoothing:
+    antialiased;
 }
 
 h1,
@@ -166,8 +165,11 @@ button {
   *,
   *::before,
   *::after {
-    animation-duration: 0.001ms !important;
-    transition-duration: 0.001ms !important;
+    animation-duration:
+      0.001ms !important;
+
+    transition-duration:
+      0.001ms !important;
   }
 }
 
@@ -195,7 +197,10 @@ button {
   text-align: center;
 
   opacity: 0;
-  transform: translateY(-14px);
+
+  transform:
+    translateY(-14px);
+
   pointer-events: none;
 
   transition:
@@ -211,7 +216,10 @@ button {
 
 .site-nav.page-leaving {
   opacity: 0;
-  transform: translateY(-14px);
+
+  transform:
+    translateY(-14px);
+
   pointer-events: none;
 }
 
@@ -245,7 +253,8 @@ button {
   letter-spacing: 0.06em;
   line-height: 1.2;
 
-  transition: color 0.25s ease;
+  transition:
+    color 0.25s ease;
 }
 
 .site-nav__name:hover,
@@ -297,7 +306,8 @@ button {
   white-space: nowrap;
 }
 
-/* Delete this rule to show the About link again. */
+/* Delete this rule to display
+   the About link again. */
 
 .site-nav__link--about {
   display: none;
@@ -308,7 +318,7 @@ button {
   color: var(--ink);
 }
 
-/* Animated navigation underline. */
+/* Animated underline from the centre. */
 
 .site-nav
 a:not(.site-nav__name) {
@@ -321,8 +331,11 @@ a:not(.site-nav__name) {
     );
 
   background-repeat: no-repeat;
-  background-position: center bottom;
-  background-size: 0 1px;
+  background-position:
+    center bottom;
+
+  background-size:
+    0 1px;
 
   transition:
     color 0.2s ease,
@@ -333,7 +346,8 @@ a:not(.site-nav__name) {
 a:not(.site-nav__name):hover,
 .site-nav
 a:not(.site-nav__name):focus-visible {
-  background-size: 100% 1px;
+  background-size:
+    100% 1px;
 }
 
 /* --------------------------------------------------------------------------
@@ -348,7 +362,8 @@ a:not(.site-nav__name):focus-visible {
 
   padding-right: 0;
 
-  transition: padding-right 0.4s ease;
+  transition:
+    padding-right 0.4s ease;
 }
 
 .site-nav__links.is-searching
@@ -383,7 +398,8 @@ a:not(.site-nav__name):focus-visible {
       55vw
     );
 
-  border-color: var(--ink-soft);
+  border-color:
+    var(--ink-soft);
 }
 
 .site-nav__search-label {
@@ -397,6 +413,7 @@ a:not(.site-nav__name):focus-visible {
   font-size: 0.75rem;
   letter-spacing: 0.06em;
   text-transform: uppercase;
+
   white-space: nowrap;
   text-decoration: none;
 
@@ -413,8 +430,11 @@ a:not(.site-nav__name):focus-visible {
     );
 
   background-repeat: no-repeat;
-  background-position: center bottom;
-  background-size: 0 1px;
+  background-position:
+    center bottom;
+
+  background-size:
+    0 1px;
 
   transition:
     opacity 0.25s ease,
@@ -425,7 +445,9 @@ a:not(.site-nav__name):focus-visible {
 .site-nav__search-label:hover,
 .site-nav__search-label:focus-visible {
   color: var(--ink);
-  background-size: 100% 1px;
+
+  background-size:
+    100% 1px;
 }
 
 .site-nav__links.is-searching
@@ -508,7 +530,8 @@ a:not(.site-nav__name):focus-visible {
   opacity: 0;
   pointer-events: none;
 
-  transition: opacity 0.25s ease;
+  transition:
+    opacity 0.25s ease;
 }
 
 .site-nav__search-input::-webkit-search-cancel-button,
@@ -527,7 +550,9 @@ a:not(.site-nav__name):focus-visible {
 
 .site-nav__search-input:focus {
   outline: none;
-  border-bottom-color: var(--accent);
+
+  border-bottom-color:
+    var(--accent);
 }
 
 .site-nav__links.is-searching
@@ -606,7 +631,9 @@ main {
 
 .fade-in {
   opacity: 0;
-  transform: translateY(28px);
+
+  transform:
+    translateY(28px);
 
   transition:
     opacity 1.2s ease,
@@ -633,7 +660,9 @@ main {
 main.page-enter,
 main.page-leaving {
   opacity: 0;
-  transform: translateY(24px);
+
+  transform:
+    translateY(24px);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -671,7 +700,8 @@ body:has(.splash) {
   overflow: hidden;
   background: #000;
 
-  transition: transform 0.6s ease;
+  transition:
+    transform 0.6s ease;
 }
 
 @keyframes splash-fade-in {
@@ -686,9 +716,13 @@ body:has(.splash) {
 
 .splash-unlock:checked
 ~ .splash {
-  transform: translateY(-100%);
+  transform:
+    translateY(-100%);
+
   pointer-events: none;
 }
+
+/* Splash fallback images. */
 
 .splash__images {
   position: absolute;
@@ -702,7 +736,9 @@ body:has(.splash) {
     both;
 }
 
-/* Hide the underlying images completely when a splash video exists. */
+/* The video is now outside
+   .splash__images in the template,
+   so this safely hides only the images. */
 
 .splash:has(.splash__video)
 .splash__images {
@@ -719,12 +755,15 @@ body:has(.splash) {
   object-fit: cover;
   opacity: 0;
 
-  transition: opacity 1.4s ease;
+  transition:
+    opacity 1.4s ease;
 }
 
 .splash__image.is-active {
   opacity: 1;
 }
+
+/* Splash video. */
 
 .splash__video {
   position: absolute;
@@ -738,6 +777,8 @@ body:has(.splash) {
 
   object-fit: cover;
 }
+
+/* Splash overlay and text. */
 
 .splash__overlay {
   position: absolute;
@@ -933,6 +974,7 @@ body:has(.splash) {
   position: relative;
 
   display: block;
+
   width: 100%;
   min-width: 0;
 
@@ -959,8 +1001,11 @@ body:has(.splash) {
 .project-card__image,
 .project-card:focus-visible
 .project-card__image {
-  filter: saturate(0.6);
-  transform: scale(1.03);
+  filter:
+    saturate(0.6);
+
+  transform:
+    scale(1.03);
 }
 
 .project-card__title {
@@ -1007,7 +1052,8 @@ body:has(.splash) {
 
   opacity: 0;
 
-  transition: opacity 0.3s ease;
+  transition:
+    opacity 0.3s ease;
 }
 
 .project-card:hover
@@ -1067,7 +1113,8 @@ main.project {
   object-fit: contain;
 }
 
-/* Gallery images retain their natural proportions. */
+/* Gallery images retain their
+   natural proportions. */
 
 .project-gallery
 .project-image img {
@@ -1119,7 +1166,8 @@ main.project {
   object-fit: cover;
 }
 
-/* On portrait screens, paired title images show only the first image. */
+/* On portrait screens, paired title
+   images display only the first one. */
 
 @media (orientation: portrait) {
   .project-title-images:not(
@@ -1130,7 +1178,7 @@ main.project {
   }
 }
 
-/* A single title image fills the available width. */
+/* Single title image. */
 
 .project-title-images--single {
   display: block;
@@ -1152,10 +1200,11 @@ main.project {
 .project-title-images--single
 .project-image img {
   height: auto;
+
   object-fit: initial;
 }
 
-/* Desktop and landscape-screen title-image height. */
+/* Desktop and landscape layout. */
 
 @media (orientation: landscape) {
   .project-title-images--single
@@ -1188,7 +1237,8 @@ main.project {
   }
 }
 
-/* Keep the first/top project image at a consistent height on phones. */
+/* Keep the first title image at a
+   consistent height on phones. */
 
 @media (max-width: 700px) {
   .project-title-images
@@ -1291,7 +1341,8 @@ main.project {
   line-height: 1.7;
 }
 
-/* Links inserted using [[visible text|target project]]. */
+/* Project links inserted using:
+   [[visible text|target project]] */
 
 .project-description__link,
 .project-description__link:visited {
@@ -1305,8 +1356,11 @@ main.project {
     );
 
   background-repeat: no-repeat;
-  background-position: center bottom;
-  background-size: 0 1px;
+  background-position:
+    center bottom;
+
+  background-size:
+    0 1px;
 
   transition:
     color 0.2s ease,
@@ -1316,7 +1370,9 @@ main.project {
 .project-description__link:hover,
 .project-description__link:focus-visible {
   color: #315f85;
-  background-size: 100% 1px;
+
+  background-size:
+    100% 1px;
 }
 
 .project-facts {
@@ -1420,13 +1476,12 @@ main.project {
   }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .back-to-top {
-    transition: none;
-  }
-}
+/* --------------------------------------------------------------------------
+   Phone-specific index behaviour
+   -------------------------------------------------------------------------- */
 
-/* Disable project-tile fade-in on phones. */
+/* Disable project-tile fade-in on phones.
+   Project-page image fades remain active. */
 
 @media (max-width: 700px) {
   .project-grid

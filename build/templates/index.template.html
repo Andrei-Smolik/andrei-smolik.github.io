@@ -1,13 +1,13 @@
 <!--
   build/templates/index.template.html
 
-  Template for the generated index page. generate.js fills the
-  placeholders, repeats the splash and project blocks, and writes
-  the completed page to /index.html.
+  generate.js reads this template, fills its tokens,
+  repeats project blocks and writes /index.html.
 -->
 
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
 
@@ -16,7 +16,7 @@
     content="width=device-width, initial-scale=1.0"
   />
 
-  <title>{{SITE_NAME}}</title>
+  <title>{{SITE_NAME}} — Index</title>
 
   <meta
     name="description"
@@ -30,9 +30,9 @@
   />
 
   <link
-  rel="stylesheet"
-  href="style.css?v={{ASSET_VERSION}}"
-/>
+    rel="stylesheet"
+    href="style.css"
+  />
 </head>
 
 <body>
@@ -61,6 +61,10 @@
     id="splash"
     tabindex="0"
   >
+
+    <!-- Project images used only when
+         there is no splash video. -->
+
     <div class="splash__images">
 
       <!-- EACH:SPLASH_IMAGE -->
@@ -73,28 +77,33 @@
       />
       <!-- END:SPLASH_IMAGE -->
 
-      <!-- IF:SPLASH_VIDEO -->
-      <video
-        class="splash__video"
-        autoplay
-        muted
-        loop
-        playsinline
-        preload="auto"
-        aria-hidden="true"
-      >
-        <source
-          src="{{SPLASH_VIDEO_SRC}}"
-          type="video/mp4"
-        />
-      </video>
-      <!-- END:SPLASH_VIDEO -->
-
     </div>
+
+    <!-- The video is deliberately outside
+         .splash__images so hiding that
+         container cannot hide the video. -->
+
+    <!-- IF:SPLASH_VIDEO -->
+    <video
+      class="splash__video"
+      autoplay
+      muted
+      loop
+      playsinline
+      preload="auto"
+      aria-hidden="true"
+    >
+      <source
+        src="{{SPLASH_VIDEO_SRC}}"
+        type="video/mp4"
+      />
+    </video>
+    <!-- END:SPLASH_VIDEO -->
 
     <div class="splash__overlay"></div>
 
     <div class="splash__content">
+
       <h1
         class="splash__name"
         data-site-name
@@ -108,28 +117,35 @@
       >
         Portfolio
       </label>
+
     </div>
+
   </section>
 
   <div
     class="page-scroll"
     id="pageScroll"
   >
+
     <div data-include="nav.html"></div>
 
     <main>
+
       <ul
         class="project-grid"
         id="projects"
       >
+
         <!-- EACH:PROJECT -->
         <li>
+
           <a
             class="project-card fade-in"
             href="{{PROJECT_HREF}}"
             aria-label="Open {{PROJECT_TITLE}}"
             data-search="{{PROJECT_SEARCH_TERMS}}"
           >
+
             <img
               class="project-card__image"
               src="{{PROJECT_COVER_SRC}}"
@@ -143,13 +159,18 @@
             <span class="project-card__title">
               {{PROJECT_TITLE}}
             </span>
+
           </a>
+
         </li>
         <!-- END:PROJECT -->
+
       </ul>
+
     </main>
 
     <footer class="site-footer">
+
       <span>
         &copy;
         <span id="year"></span>
@@ -157,28 +178,30 @@
           {{SITE_NAME}}
         </span>
       </span>
+
     </footer>
+
   </div>
 
-  <!-- <button
-  class="back-to-top"
-  id="back RingToTop"
-  type="button"
-  aria-hidden="true"
-  tabindex="-1"
->
-  back to top
-</button> -->
+  <button
+    class="back-to-top"
+    id="backToTop"
+    type="button"
+    aria-hidden="true"
+    tabindex="-1"
+  >
+    back
+  </button>
 
-  <script src="include-partials.js?v={{ASSET_VERSION}}"></script>
+  <script src="include-partials.js"></script>
 
   <script>
     document
       .getElementById('year')
       .textContent =
-        new Date()
-          .getFullYear();
+        new Date().getFullYear();
   </script>
 
 </body>
+
 </html>
