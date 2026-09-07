@@ -1,9 +1,9 @@
 /**
  * include-partials.js
  *
- * Loads shared HTML partials and initializes the website’s navigation,
- * splash screen, page transitions, project search, scroll animations,
- * and video behaviour.
+ * Loads shared HTML partials and initializes navigation,
+ * splash behaviour, page transitions, search, scroll
+ * animations, videos, and the back-to-top button.
  */
 
 async function includePartials() {
@@ -15,14 +15,14 @@ async function includePartials() {
   await Promise.all(
     Array.from(slots).map(
       async (slot) => {
-        const path =
+        const includePath =
           slot.getAttribute(
             'data-include'
           );
 
         try {
           const response =
-            await fetch(path);
+            await fetch(includePath);
 
           if (!response.ok) {
             throw new Error(
@@ -35,7 +35,7 @@ async function includePartials() {
             await response.text();
         } catch (error) {
           console.error(
-            `Failed to include partial "${path}":`,
+            `Failed to include partial "${includePath}":`,
             error
           );
 
@@ -46,9 +46,9 @@ async function includePartials() {
   );
 }
 
-// ---------------------------------------------------------------------
-// Navigation search
-// ---------------------------------------------------------------------
+/* ------------------------------------------------------------------
+   Navigation search
+   ------------------------------------------------------------------ */
 
 function initNavSearch() {
   const links =
@@ -122,9 +122,9 @@ function initNavSearch() {
   );
 }
 
-// ---------------------------------------------------------------------
-// Site configuration
-// ---------------------------------------------------------------------
+/* ------------------------------------------------------------------
+   Site configuration
+   ------------------------------------------------------------------ */
 
 async function initContactLinks() {
   try {
@@ -146,9 +146,10 @@ async function initContactLinks() {
     text
       .split('\n')
       .forEach((line) => {
-        const trimmed = line
-          .trim()
-          .replace(/\r$/, '');
+        const trimmed =
+          line
+            .trim()
+            .replace(/\r$/, '');
 
         if (
           !trimmed ||
@@ -165,13 +166,15 @@ async function initContactLinks() {
           return;
         }
 
-        const key = trimmed
-          .slice(0, equalsIndex)
-          .trim();
+        const key =
+          trimmed
+            .slice(0, equalsIndex)
+            .trim();
 
-        let value = trimmed
-          .slice(equalsIndex + 1)
-          .trim();
+        let value =
+          trimmed
+            .slice(equalsIndex + 1)
+            .trim();
 
         value = value.replace(
           /^["'](.*)["']$/,
@@ -221,19 +224,26 @@ async function initContactLinks() {
   }
 }
 
-// ---------------------------------------------------------------------
-// Page-specific navigation
-// ---------------------------------------------------------------------
+/* ------------------------------------------------------------------
+   Page-specific navigation
+   ------------------------------------------------------------------ */
 
-function hidePortfolioLinkOnIndex() {
-  const path =
+function isIndexPage() {
+  const pagePath =
     window.location.pathname;
 
-  const onIndex =
-    path === '/' ||
-    path.endsWith('/index.html');
+  return (
+    pagePath === '/' ||
+    pagePath.endsWith(
+      '/index.html'
+    )
+  );
+}
 
-  if (!onIndex) return;
+function hidePortfolioLinkOnIndex() {
+  if (!isIndexPage()) {
+    return;
+  }
 
   const link =
     document.querySelector(
@@ -246,14 +256,9 @@ function hidePortfolioLinkOnIndex() {
 }
 
 function hideSearchOffIndex() {
-  const path =
-    window.location.pathname;
-
-  const onIndex =
-    path === '/' ||
-    path.endsWith('/index.html');
-
-  if (onIndex) return;
+  if (isIndexPage()) {
+    return;
+  }
 
   const search =
     document.querySelector(
@@ -265,9 +270,9 @@ function hideSearchOffIndex() {
   }
 }
 
-// ---------------------------------------------------------------------
-// Project search
-// ---------------------------------------------------------------------
+/* ------------------------------------------------------------------
+   Project search
+   ------------------------------------------------------------------ */
 
 function initProjectSearch() {
   const grid =
@@ -284,11 +289,12 @@ function initProjectSearch() {
     return;
   }
 
-  const cards = Array.from(
-    grid.querySelectorAll(
-      '.project-card'
-    )
-  );
+  const cards =
+    Array.from(
+      grid.querySelectorAll(
+        '.project-card'
+      )
+    );
 
   input.addEventListener(
     'input',
@@ -299,14 +305,16 @@ function initProjectSearch() {
           .toLowerCase();
 
       cards.forEach((card) => {
-        const haystack = (
+        const searchableText = (
           card.dataset.search ||
           card.textContent
         ).toLowerCase();
 
         const matches =
           !query ||
-          haystack.includes(query);
+          searchableText.includes(
+            query
+          );
 
         const item =
           card.closest('li') ||
@@ -319,9 +327,9 @@ function initProjectSearch() {
   );
 }
 
-// ---------------------------------------------------------------------
-// Splash screen
-// ---------------------------------------------------------------------
+/* ------------------------------------------------------------------
+   Splash screen
+   ------------------------------------------------------------------ */
 
 function initSplashRotation() {
   const images =
@@ -333,19 +341,21 @@ function initSplashRotation() {
     return;
   }
 
-  let current = 0;
+  let currentIndex = 0;
 
-  setInterval(() => {
-    images[current]
+  window.setInterval(() => {
+    images[currentIndex]
       .classList.remove(
         'is-active'
       );
 
-    current =
-      (current + 1) %
+    currentIndex =
+      (
+        currentIndex + 1
+      ) %
       images.length;
 
-    images[current]
+    images[currentIndex]
       .classList.add(
         'is-active'
       );
@@ -358,7 +368,9 @@ function initSplashVideo() {
       '.splash__video'
     );
 
-  if (!video) return;
+  if (!video) {
+    return;
+  }
 
   const checkbox =
     document.getElementById(
@@ -366,11 +378,13 @@ function initSplashVideo() {
     );
 
   const source =
-    video.querySelector('source');
+    video.querySelector(
+      'source'
+    );
 
   video.muted = true;
 
-  function play() {
+  function playVideo() {
     video
       .play()
       .catch(() => {});
@@ -379,7 +393,7 @@ function initSplashVideo() {
   if (checkbox?.checked) {
     video.pause();
   } else {
-    play();
+    playVideo();
   }
 
   checkbox?.addEventListener(
@@ -388,7 +402,7 @@ function initSplashVideo() {
       if (checkbox.checked) {
         video.pause();
       } else {
-        play();
+        playVideo();
       }
     }
   );
@@ -416,25 +430,27 @@ function initSplashScrollTrigger() {
     return;
   }
 
-  function trigger() {
-    if (!checkbox.checked) {
-      checkbox.checked = true;
-
-      checkbox.dispatchEvent(
-        new Event('change')
-      );
+  function unlockSplash() {
+    if (checkbox.checked) {
+      return;
     }
+
+    checkbox.checked = true;
+
+    checkbox.dispatchEvent(
+      new Event('change')
+    );
   }
 
   splash.addEventListener(
     'wheel',
-    trigger,
+    unlockSplash,
     { passive: true }
   );
 
   splash.addEventListener(
     'touchmove',
-    trigger,
+    unlockSplash,
     { passive: true }
   );
 
@@ -452,15 +468,15 @@ function initSplashScrollTrigger() {
           event.key
         )
       ) {
-        trigger();
+        unlockSplash();
       }
     }
   );
 }
 
-// ---------------------------------------------------------------------
-// Page transitions
-// ---------------------------------------------------------------------
+/* ------------------------------------------------------------------
+   Page transitions
+   ------------------------------------------------------------------ */
 
 function initPageEntrance() {
   const nav =
@@ -473,25 +489,19 @@ function initPageEntrance() {
       'main'
     );
 
-  function reveal() {
-    if (nav) {
-      nav.classList.add(
-        'is-visible'
-      );
-    }
+  function revealPage() {
+    nav?.classList.add(
+      'is-visible'
+    );
 
-    if (content) {
-      content.classList.remove(
-        'page-enter'
-      );
-    }
-  }
-
-  if (content) {
-    content.classList.add(
+    content?.classList.remove(
       'page-enter'
     );
   }
+
+  content?.classList.add(
+    'page-enter'
+  );
 
   const checkbox =
     document.getElementById(
@@ -502,9 +512,11 @@ function initPageEntrance() {
     !checkbox ||
     checkbox.checked
   ) {
-    requestAnimationFrame(() =>
-      requestAnimationFrame(reveal)
-    );
+    requestAnimationFrame(() => {
+      requestAnimationFrame(
+        revealPage
+      );
+    });
 
     return;
   }
@@ -513,7 +525,7 @@ function initPageEntrance() {
     'change',
     () => {
       if (checkbox.checked) {
-        reveal();
+        revealPage();
       }
     }
   );
@@ -540,7 +552,9 @@ function initPageExitTransition() {
           'a[href]'
         );
 
-      if (!link) return;
+      if (!link) {
+        return;
+      }
 
       if (
         link.target === '_blank' ||
@@ -552,7 +566,9 @@ function initPageExitTransition() {
       }
 
       const href =
-        link.getAttribute('href');
+        link.getAttribute(
+          'href'
+        );
 
       if (
         !href ||
@@ -567,19 +583,15 @@ function initPageExitTransition() {
 
       event.preventDefault();
 
-      if (nav) {
-        nav.classList.add(
-          'page-leaving'
-        );
-      }
+      nav?.classList.add(
+        'page-leaving'
+      );
 
-      if (content) {
-        content.classList.add(
-          'page-leaving'
-        );
-      }
+      content?.classList.add(
+        'page-leaving'
+      );
 
-      setTimeout(() => {
+      window.setTimeout(() => {
         window.location.href =
           href;
       }, PAGE_EXIT_DURATION_MS);
@@ -587,9 +599,9 @@ function initPageExitTransition() {
   );
 }
 
-// ---------------------------------------------------------------------
-// Navigation sizing
-// ---------------------------------------------------------------------
+/* ------------------------------------------------------------------
+   Navigation sizing
+   ------------------------------------------------------------------ */
 
 function initNavHeightSync() {
   const nav =
@@ -597,10 +609,12 @@ function initNavHeightSync() {
       '.site-nav'
     );
 
-  if (!nav) return;
+  if (!nav) {
+    return;
+  }
 
   function syncHeight() {
-    const height =
+    const navHeight =
       nav
         .getBoundingClientRect()
         .height;
@@ -609,7 +623,7 @@ function initNavHeightSync() {
       .style
       .setProperty(
         '--nav-height',
-        `${height}px`
+        `${navHeight}px`
       );
   }
 
@@ -621,50 +635,9 @@ function initNavHeightSync() {
   );
 }
 
-// ---------------------------------------------------------------------
-// Index return positioning
-// ---------------------------------------------------------------------
-
-function resetIndexScrollOnProjectReturn() {
-  const path =
-    window.location.pathname;
-
-  const onIndex =
-    path === '/' ||
-    path.endsWith('/index.html');
-
-  if (
-    !onIndex ||
-    window.location.hash !==
-      '#projects'
-  ) {
-    return;
-  }
-
-  const pageScroll =
-    document.getElementById(
-      'pageScroll'
-    );
-
-  if (!pageScroll) return;
-
-  function reset() {
-    pageScroll.scrollTop = 0;
-  }
-
-  requestAnimationFrame(() =>
-    requestAnimationFrame(reset)
-  );
-
-  window.addEventListener(
-    'pageshow',
-    reset
-  );
-}
-
-// ---------------------------------------------------------------------
-// Scroll fade-in
-// ---------------------------------------------------------------------
+/* ------------------------------------------------------------------
+   Scroll fade-in
+   ------------------------------------------------------------------ */
 
 function initScrollFadeIn() {
   const elements =
@@ -683,10 +656,11 @@ function initScrollFadeIn() {
     )
   ) {
     elements.forEach(
-      (element) =>
+      (element) => {
         element.classList.add(
           'is-visible'
-        )
+        );
+      }
     );
 
     return;
@@ -698,17 +672,19 @@ function initScrollFadeIn() {
         entries.forEach(
           (entry) => {
             if (
-              entry.isIntersecting
+              !entry.isIntersecting
             ) {
-              entry.target
-                .classList.add(
-                  'is-visible'
-                );
-
-              observer.unobserve(
-                entry.target
-              );
+              return;
             }
+
+            entry.target
+              .classList.add(
+                'is-visible'
+              );
+
+            observer.unobserve(
+              entry.target
+            );
           }
         );
       },
@@ -720,14 +696,87 @@ function initScrollFadeIn() {
     );
 
   elements.forEach(
-    (element) =>
-      observer.observe(element)
+    (element) => {
+      observer.observe(
+        element
+      );
+    }
   );
 }
 
-// ---------------------------------------------------------------------
-// Project videos
-// ---------------------------------------------------------------------
+/* ------------------------------------------------------------------
+   Back to top
+   ------------------------------------------------------------------ */
+
+function initBackToTop() {
+  const pageScroll =
+    document.getElementById(
+      'pageScroll'
+    );
+
+  const button =
+    document.getElementById(
+      'backToTop'
+    );
+
+  if (!pageScroll || !button) {
+    return;
+  }
+
+  const reducedMotion =
+    window.matchMedia(
+      '(prefers-reduced-motion: reduce)'
+    );
+
+  function updateVisibility() {
+    const showButton =
+  pageScroll.scrollTop > 600;
+
+    button.classList.toggle(
+      'is-visible',
+      showButton
+    );
+
+    button.setAttribute(
+      'aria-hidden',
+      String(!showButton)
+    );
+
+    button.tabIndex =
+      showButton ? 0 : -1;
+  }
+
+  pageScroll.addEventListener(
+    'scroll',
+    updateVisibility,
+    { passive: true }
+  );
+
+  window.addEventListener(
+    'resize',
+    updateVisibility
+  );
+
+  button.addEventListener(
+    'click',
+    () => {
+      pageScroll.scrollTo({
+        top: 0,
+        left: 0,
+        behavior:
+          reducedMotion.matches
+            ? 'auto'
+            : 'smooth',
+      });
+    }
+  );
+
+  updateVisibility();
+}
+
+/* ------------------------------------------------------------------
+   Project videos
+   ------------------------------------------------------------------ */
 
 function initVideosInView() {
   const videos =
@@ -788,10 +837,9 @@ function initVideosInView() {
       }
     );
 
-  videos.forEach(
-    (video) =>
-      observer.observe(video)
-  );
+  videos.forEach((video) => {
+    observer.observe(video);
+  });
 }
 
 function initProjectVideoControls() {
@@ -815,13 +863,13 @@ function initProjectVideoControls() {
       return;
     }
 
-    const showControls = () => {
+    function showControls() {
       video.controls = true;
-    };
+    }
 
-    const hideControls = () => {
+    function hideControls() {
       video.controls = false;
-    };
+    }
 
     hideControls();
 
@@ -847,59 +895,13 @@ function initProjectVideoControls() {
   });
 }
 
-function initBackToTop() {
-  const pageScroll =
-    document.getElementById(
-      'pageScroll'
-    );
+/* ------------------------------------------------------------------
+   Initialization
+   ------------------------------------------------------------------ */
 
-  const button =
-    document.getElementById(
-      'backToTop'
-    );
-
-  if (!pageScroll || !button) {
-    return;
-  }
-
-  function updateVisibility() {
-    button.classList.toggle(
-      'is-visible',
-      pageScroll.scrollTop >
-        window.innerHeight
-    );
-  }
-
-  pageScroll.addEventListener(
-    'scroll',
-    updateVisibility,
-    { passive: true }
-  );
-
-  button.addEventListener(
-    'click',
-    () => {
-      const reducedMotion =
-        window.matchMedia(
-          '(prefers-reduced-motion: reduce)'
-        ).matches;
-
-      pageScroll.scrollTo({
-        top: 0,
-        behavior:
-          reducedMotion
-            ? 'auto'
-            : 'smooth',
-      });
-    }
-  );
-
-  updateVisibility();
-}
-
-// ---------------------------------------------------------------------
-// Initialization
-// ---------------------------------------------------------------------
+initSplashRotation();
+initSplashVideo();
+initSplashScrollTrigger();
 
 includePartials().then(
   async () => {
@@ -911,15 +913,9 @@ includePartials().then(
     initPageEntrance();
     initPageExitTransition();
     initNavHeightSync();
-    //resetIndexScrollOnProjectReturn();
     initScrollFadeIn();
+    initBackToTop();
     initProjectVideoControls();
     initVideosInView();
   }
 );
-
-initSplashRotation();
-initSplashVideo();
-initSplashScrollTrigger();
-initBackToTop();
-

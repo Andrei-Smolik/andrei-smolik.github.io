@@ -2,19 +2,49 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  />
+
   <title>ANDREI SMOLIK — Index</title>
-  <meta name="description" content="Selected works." />
-  <link rel="icon" type="image/png" href="favicon.png?v=2" />
-  <link rel="stylesheet" href="style.css" />
+
+  <meta
+    name="description"
+    content="Selected works."
+  />
+
+  <link
+    rel="icon"
+    type="image/png"
+    href="favicon.png?v=2"
+  />
+
+  <link
+    rel="stylesheet"
+    href="style.css"
+  />
 </head>
+
 <body>
 
-  <input type="checkbox" id="splashUnlock" class="splash-unlock" />
+  <input
+    type="checkbox"
+    id="splashUnlock"
+    class="splash-unlock"
+  />
 
   <script>
-    if (window.location.hash === '#projects') {
-      document.getElementById('splashUnlock').checked = true;
+    if (
+      window.location.hash ===
+      '#projects'
+    ) {
+      document
+        .getElementById(
+          'splashUnlock'
+        )
+        .checked = true;
     }
   </script>
 
@@ -337,23 +367,23 @@
       <span>
         &copy;
         <span id="year"></span>
-        <span data-site-name>ANDREI SMOLIK</span>
+        <span data-site-name>
+          ANDREI SMOLIK
+        </span>
       </span>
     </footer>
   </div>
-  <button
-  class="back-to-top"
-  id="backToTop"
-  type="button"
->
-  Back to top
-</button>
+
+  
 
   <script src="include-partials.js"></script>
 
   <script>
-    document.getElementById('year').textContent =
-      new Date().getFullYear();
+    document
+      .getElementById('year')
+      .textContent =
+        new Date()
+          .getFullYear();
   </script>
 
 </body>
