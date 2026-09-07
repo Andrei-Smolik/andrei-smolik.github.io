@@ -936,7 +936,7 @@ body:has(.splash) {
   }
 
   .project-grid {
-    gap: 1px;
+    gap: 5px;
   }
 
 }
