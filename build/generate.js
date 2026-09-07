@@ -16,6 +16,7 @@
  * or generated slug. Invalid links abort the run before files are changed.
  */
 
+const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
 const {
@@ -26,6 +27,44 @@ const sharp = require('sharp');
 
 const ROOT = path.resolve(__dirname, '..');
 const TEMPLATES_DIR = path.join(__dirname, 'templates');
+
+function buildAssetVersion() {
+  const hash =
+    crypto.createHash(
+      'sha256'
+    );
+
+  const assetFiles = [
+    'style.css',
+    'include-partials.js',
+  ];
+
+  for (
+    const filename of assetFiles
+  ) {
+    const filePath =
+      path.join(
+        ROOT,
+        filename
+      );
+
+    hash.update(filename);
+    hash.update('\0');
+
+    hash.update(
+      fs.readFileSync(
+        filePath
+      )
+    );
+  }
+
+  return hash
+    .digest('hex')
+    .slice(0, 10);
+}
+
+const ASSET_VERSION =
+  buildAssetVersion();
 
 const IMAGE_EXTENSIONS = new Set([
   '.jpg',
@@ -1775,11 +1814,18 @@ function fillTokens(
 ) {
   let result = html;
 
+  const completeTokens = {
+    ASSET_VERSION,
+    ...tokens,
+  };
+
   for (
     const [
       key,
       value,
-    ] of Object.entries(tokens)
+    ] of Object.entries(
+      completeTokens
+    )
   ) {
     result =
       result
