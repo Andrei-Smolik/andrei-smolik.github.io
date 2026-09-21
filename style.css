@@ -2,7 +2,11 @@
    style.css
    ========================================================================== */
 
-@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;1,9..144,400;1,9..144,500&family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500;600&family=Jost:wght@400;500&family=Outfit:wght@500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;1,9..144,400;1,9..144,500&family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500;600&family=Jost:wght@400;500&display=swap');
+
+/* --------------------------------------------------------------------------
+   Variables
+   -------------------------------------------------------------------------- */
 
 :root {
   --paper: #f6f6f3;
@@ -78,7 +82,7 @@
   --step-2:
     clamp(
       1.6rem,
-      1.3.3rem + 1.2vw,
+      1.3rem + 1.2vw,
       2.4rem
     );
 
@@ -191,17 +195,14 @@ button {
     var(--gutter)
     var(--nav-link-gap);
 
-  box-sizing: border-box;
-
   background: var(--paper);
   text-align: center;
 
   opacity: 0;
+  pointer-events: none;
 
   transform:
     translateY(-14px);
-
-  pointer-events: none;
 
   transition:
     opacity 0.7s ease,
@@ -210,17 +211,16 @@ button {
 
 .site-nav.is-visible {
   opacity: 1;
-  transform: none;
   pointer-events: auto;
+  transform: none;
 }
 
 .site-nav.page-leaving {
   opacity: 0;
+  pointer-events: none;
 
   transform:
     translateY(-14px);
-
-  pointer-events: none;
 }
 
 .site-nav::after {
@@ -306,7 +306,7 @@ button {
   white-space: nowrap;
 }
 
-/* Delete this rule to display
+/* Remove this rule to show
    the About link again. */
 
 .site-nav__link--about {
@@ -318,7 +318,7 @@ button {
   color: var(--ink);
 }
 
-/* Animated underline from the centre. */
+/* Animated navigation underline. */
 
 .site-nav
 a:not(.site-nav__name) {
@@ -413,9 +413,7 @@ a:not(.site-nav__name):focus-visible {
   font-size: 0.75rem;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-
   white-space: nowrap;
-  text-decoration: none;
 
   transform:
     translate(
@@ -479,12 +477,11 @@ a:not(.site-nav__name):focus-visible {
   font-size: 0.9rem;
 
   opacity: 0;
+  pointer-events: none;
 
   transform:
     translateY(-50%)
     scale(0.6);
-
-  pointer-events: none;
 
   transition:
     opacity 0.25s ease,
@@ -502,12 +499,11 @@ a:not(.site-nav__name):focus-visible {
 .site-nav__links.is-searching
 .site-nav__search-close {
   opacity: 1;
+  pointer-events: auto;
 
   transform:
     translateY(-50%)
     scale(1);
-
-  pointer-events: auto;
 }
 
 .site-nav__search-input {
@@ -550,9 +546,6 @@ a:not(.site-nav__name):focus-visible {
 
 .site-nav__search-input:focus {
   outline: none;
-
-  border-bottom-color:
-    var(--accent);
 }
 
 .site-nav__links.is-searching
@@ -562,12 +555,18 @@ a:not(.site-nav__name):focus-visible {
 }
 
 /* --------------------------------------------------------------------------
-   Main layout
+   Page layout
    -------------------------------------------------------------------------- */
 
 .page-scroll {
   height: 100%;
   overflow-y: auto;
+
+  -webkit-overflow-scrolling:
+    touch;
+
+  overscroll-behavior-y:
+    contain;
 
   scroll-padding-top:
     calc(
@@ -716,13 +715,11 @@ body:has(.splash) {
 
 .splash-unlock:checked
 ~ .splash {
+  pointer-events: none;
+
   transform:
     translateY(-100%);
-
-  pointer-events: none;
 }
-
-/* Splash fallback images. */
 
 .splash__images {
   position: absolute;
@@ -736,9 +733,10 @@ body:has(.splash) {
     both;
 }
 
-/* The video is now outside
-   .splash__images in the template,
-   so this safely hides only the images. */
+/*
+ * The video must be outside
+ * .splash__images in index.template.html.
+ */
 
 .splash:has(.splash__video)
 .splash__images {
@@ -763,8 +761,6 @@ body:has(.splash) {
   opacity: 1;
 }
 
-/* Splash video. */
-
 .splash__video {
   position: absolute;
   inset: 0;
@@ -777,8 +773,6 @@ body:has(.splash) {
 
   object-fit: cover;
 }
-
-/* Splash overlay and text. */
 
 .splash__overlay {
   position: absolute;
@@ -954,6 +948,10 @@ body:has(.splash) {
     );
 }
 
+.project-grid li {
+  min-width: 0;
+}
+
 @media (min-width: 900px) {
   .project-grid {
     grid-template-columns:
@@ -966,7 +964,8 @@ body:has(.splash) {
 
 @media (max-width: 700px) {
   .project-grid {
-    gap: 15px;
+    column-gap: 15px;
+    row-gap: 1.5rem;
   }
 }
 
@@ -1032,12 +1031,13 @@ body:has(.splash) {
   font-family:
     'futura-pt',
     'Futura PT',
-    Jost,
+    'Jost',
     sans-serif;
 
   font-size: 1rem;
   font-weight: 500;
   letter-spacing: 0.1em;
+  line-height: 1.35;
   text-align: center;
   text-transform: uppercase;
 
@@ -1067,6 +1067,75 @@ body:has(.splash) {
   .project-card__image,
   .project-card__title {
     transition: none;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Phone project tiles
+   -------------------------------------------------------------------------- */
+
+/*
+ * On phones, project titles are displayed
+ * beneath the square project images.
+ */
+
+@media (max-width: 700px) {
+  .project-card {
+    display: flex;
+    flex-direction: column;
+
+    overflow: visible;
+
+    aspect-ratio: auto;
+
+    border-radius: 0;
+    background: transparent;
+
+    touch-action: manipulation;
+
+    -webkit-tap-highlight-color:
+      transparent;
+  }
+
+  .project-card__image {
+    width: 100%;
+    height: auto;
+
+    aspect-ratio: 1 / 1;
+
+    border-radius: 10px;
+
+    object-fit: cover;
+  }
+
+  .project-card:hover
+  .project-card__image,
+  .project-card:focus-visible
+  .project-card__image {
+    filter: none;
+    transform: none;
+  }
+
+  .project-card__title {
+    position: static;
+    inset: auto;
+
+    display: block;
+
+    margin: 0;
+    padding: 0.5rem 0.15rem 0;
+
+    background: none;
+    color: var(--ink-soft);
+
+    font-size: 0.68rem;
+    line-height: 1.35;
+    letter-spacing: 0.08em;
+    text-align: center;
+
+    text-shadow: none;
+
+    opacity: 1;
   }
 }
 
@@ -1112,9 +1181,6 @@ main.project {
 
   object-fit: contain;
 }
-
-/* Gallery images retain their
-   natural proportions. */
 
 .project-gallery
 .project-image img {
@@ -1166,8 +1232,8 @@ main.project {
   object-fit: cover;
 }
 
-/* On portrait screens, paired title
-   images display only the first one. */
+/* Paired title images display only
+   their first image in portrait mode. */
 
 @media (orientation: portrait) {
   .project-title-images:not(
@@ -1200,11 +1266,10 @@ main.project {
 .project-title-images--single
 .project-image img {
   height: auto;
-
   object-fit: initial;
 }
 
-/* Desktop and landscape layout. */
+/* Desktop and landscape title image. */
 
 @media (orientation: landscape) {
   .project-title-images--single
@@ -1237,8 +1302,8 @@ main.project {
   }
 }
 
-/* Keep the first title image at a
-   consistent height on phones. */
+/* Consistent first title-image
+   height on phones. */
 
 @media (max-width: 700px) {
   .project-title-images
@@ -1341,8 +1406,9 @@ main.project {
   line-height: 1.7;
 }
 
-/* Project links inserted using:
-   [[visible text|target project]] */
+/* --------------------------------------------------------------------------
+   Markdown project links
+   -------------------------------------------------------------------------- */
 
 .project-description__link,
 .project-description__link:visited {
@@ -1374,6 +1440,10 @@ main.project {
   background-size:
     100% 1px;
 }
+
+/* --------------------------------------------------------------------------
+   Project facts
+   -------------------------------------------------------------------------- */
 
 .project-facts {
   margin:
@@ -1429,6 +1499,7 @@ main.project {
   font-size: 0.75rem;
   letter-spacing: 0.08em;
   text-transform: lowercase;
+  white-space: nowrap;
 
   cursor: pointer;
 
@@ -1473,45 +1544,5 @@ main.project {
 @media (prefers-reduced-motion: reduce) {
   .back-to-top {
     transition: none;
-  }
-}
-
-/* --------------------------------------------------------------------------
-   Phone-specific index behaviour
-   -------------------------------------------------------------------------- */
-
-/* Disable project-tile fade-in on phones.
-   Project-page image fades remain active. */
-
-@media (max-width: 700px) {
-  .project-grid
-  .fade-in {
-    opacity: 1;
-    transform: none;
-    transition: none;
-  }
-}
-
-/* Keep project titles visible on touch devices. */
-
-@media (hover: none) and (pointer: coarse) {
-  .project-card__title {
-    align-items: flex-end;
-    justify-content: flex-start;
-
-    padding: 0.8rem;
-
-    background:
-      linear-gradient(
-        to top,
-        rgba(0, 0, 0, 0.65),
-        rgba(0, 0, 0, 0) 55%
-      );
-
-    font-size: 0.7rem;
-    letter-spacing: 0.08em;
-    text-align: left;
-
-    opacity: 1;
   }
 }

@@ -1,16 +1,34 @@
 /**
  * include-partials.js
  *
- * Shared page behaviour:
- *
- * - Loads shared HTML partials.
- * - Configures navigation and search.
- * - Controls the splash screen and splash video.
- * - Handles page transitions.
- * - Reveals content while scrolling.
- * - Controls project videos.
- * - Controls the back button.
+ * Shared behaviour for:
+ * - HTML partials
+ * - Navigation and search
+ * - Splash images and video
+ * - Page transitions
+ * - Scroll fade-in
+ * - Project videos
+ * - Back button
  */
+
+/* --------------------------------------------------------------------------
+   Helpers
+   -------------------------------------------------------------------------- */
+
+function isIndexPage() {
+  const path = window.location.pathname;
+
+  return (
+    path === '/' ||
+    path.endsWith('/index.html')
+  );
+}
+
+function isTouchDevice() {
+  return window.matchMedia(
+    '(hover: none) and (pointer: coarse)'
+  ).matches;
+}
 
 /* --------------------------------------------------------------------------
    Shared HTML partials
@@ -45,8 +63,7 @@ async function includePartials() {
             await response.text();
         } catch (error) {
           console.error(
-            `Failed to include partial ` +
-            `"${path}":`,
+            `Failed to include "${path}":`,
             error
           );
 
@@ -58,7 +75,7 @@ async function includePartials() {
 }
 
 /* --------------------------------------------------------------------------
-   Navigation search interface
+   Navigation search
    -------------------------------------------------------------------------- */
 
 function initNavSearch() {
@@ -242,20 +259,8 @@ async function initContactLinks() {
 }
 
 /* --------------------------------------------------------------------------
-   Page detection
+   Navigation visibility
    -------------------------------------------------------------------------- */
-
-function isIndexPage() {
-  const path =
-    window.location.pathname;
-
-  return (
-    path === '/' ||
-    path.endsWith(
-      '/index.html'
-    )
-  );
-}
 
 function hidePortfolioLinkOnIndex() {
   if (!isIndexPage()) {
@@ -346,7 +351,7 @@ function initProjectSearch() {
 }
 
 /* --------------------------------------------------------------------------
-   Splash images
+   Splash image rotation
    -------------------------------------------------------------------------- */
 
 function initSplashRotation() {
@@ -412,19 +417,18 @@ function initSplashVideo() {
   video.playsInline = true;
 
   function playVideo() {
-    const playRequest =
+    const request =
       video.play();
 
     if (
-      playRequest &&
-      typeof playRequest.catch ===
+      request &&
+      typeof request.catch ===
       'function'
     ) {
-      playRequest.catch(() => {
+      request.catch(() => {
         /*
          * Autoplay may temporarily be
-         * blocked. The next interaction
-         * will try again.
+         * blocked by the browser.
          */
       });
     }
@@ -494,7 +498,7 @@ function initSplashVideo() {
 }
 
 /* --------------------------------------------------------------------------
-   Splash scroll and keyboard trigger
+   Splash interaction
    -------------------------------------------------------------------------- */
 
 function initSplashScrollTrigger() {
@@ -512,7 +516,7 @@ function initSplashScrollTrigger() {
     return;
   }
 
-  function triggerSplash() {
+  function dismissSplash() {
     if (checkbox.checked) {
       return;
     }
@@ -526,7 +530,7 @@ function initSplashScrollTrigger() {
 
   splash.addEventListener(
     'wheel',
-    triggerSplash,
+    dismissSplash,
     {
       passive: true,
     }
@@ -534,7 +538,7 @@ function initSplashScrollTrigger() {
 
   splash.addEventListener(
     'touchmove',
-    triggerSplash,
+    dismissSplash,
     {
       passive: true,
     }
@@ -543,18 +547,14 @@ function initSplashScrollTrigger() {
   splash.addEventListener(
     'keydown',
     (event) => {
-      const triggerKeys = [
+      const keys = [
         'ArrowDown',
         'PageDown',
         ' ',
       ];
 
-      if (
-        triggerKeys.includes(
-          event.key
-        )
-      ) {
-        triggerSplash();
+      if (keys.includes(event.key)) {
+        dismissSplash();
       }
     }
   );
@@ -670,9 +670,25 @@ function initPageExitTransition() {
         href.startsWith(
           'tel:'
         ) ||
-        /^(?:https?:)?\/\//i
-          .test(href)
+        /^(?:https?:)?\/\//i.test(
+          href
+        )
       ) {
+        return;
+      }
+
+      /*
+       * Navigate project tiles
+       * immediately on touchscreens.
+       */
+
+      const isTouchProjectTile =
+        link.classList.contains(
+          'project-card'
+        ) &&
+        isTouchDevice();
+
+      if (isTouchProjectTile) {
         return;
       }
 
@@ -755,20 +771,17 @@ function resetIndexScrollOnProjectReturn() {
     return;
   }
 
-  function resetScroll() {
-    pageScroll.scrollTop = 0;
-  }
+  /*
+   * Reset only on the initial navigation.
+   * Do not use a pageshow listener because
+   * Safari can otherwise jump to the top.
+   */
 
   requestAnimationFrame(() => {
-    requestAnimationFrame(
-      resetScroll
-    );
+    requestAnimationFrame(() => {
+      pageScroll.scrollTop = 0;
+    });
   });
-
-  window.addEventListener(
-    'pageshow',
-    resetScroll
-  );
 }
 
 /* --------------------------------------------------------------------------
@@ -776,17 +789,15 @@ function resetIndexScrollOnProjectReturn() {
    -------------------------------------------------------------------------- */
 
 /**
- * On phones:
+ * On phone index pages:
  *
- * - Index tiles already inside the first visible
- *   screen appear immediately.
- * - Later index tiles fade in while approaching
- *   the viewport.
+ * - Tiles visible on the first screen
+ *   appear immediately.
  *
- * On project pages and larger screens:
+ * - Tiles farther down fade in.
  *
- * - All fade-in elements retain their normal
- *   scroll-triggered animation.
+ * - Tiles fade using opacity only and
+ *   do not move under the user's finger.
  */
 
 function initScrollFadeIn() {
@@ -827,6 +838,16 @@ function initScrollFadeIn() {
     document.getElementById(
       'pageScroll'
     );
+
+  if (pageScroll) {
+    pageScroll.style
+      .webkitOverflowScrolling =
+        'touch';
+
+    pageScroll.style
+      .overscrollBehaviorY =
+        'contain';
+  }
 
   const observer =
     new IntersectionObserver(
@@ -876,6 +897,24 @@ function initScrollFadeIn() {
         element.matches(
           '.project-grid .fade-in'
         );
+
+      if (
+        isPhone &&
+        isIndexTile
+      ) {
+        element.style.transform =
+          'none';
+
+        element.style.transition =
+          'opacity 0.45s ease';
+
+        element.style.touchAction =
+          'manipulation';
+
+        element.style
+          .webkitTapHighlightColor =
+            'transparent';
+      }
 
       const elementTop =
         element
@@ -968,11 +1007,10 @@ function initVideosInView() {
           pageScroll ||
           null,
 
-        threshold:
-          [
-            0,
-            0.35,
-          ],
+        threshold: [
+          0,
+          0.35,
+        ],
       }
     );
 
