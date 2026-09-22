@@ -412,6 +412,11 @@ function initSplashVideo() {
       'source'
     );
 
+  const splash =
+    video.closest(
+      '.splash'
+    );
+
   video.defaultMuted = true;
   video.muted = true;
   video.playsInline = true;
@@ -434,8 +439,18 @@ function initSplashVideo() {
     }
   }
 
+  function revealVideo() {
+    splash?.classList.add(
+      'is-video-ready'
+    );
+  }
+
   function removeFailedVideo() {
     video.remove();
+
+    splash?.classList.add(
+      'is-video-unavailable'
+    );
   }
 
   if (checkbox?.checked) {
@@ -456,6 +471,8 @@ function initSplashVideo() {
   video.addEventListener(
     'canplay',
     () => {
+      revealVideo();
+
       if (!checkbox?.checked) {
         playVideo();
       }
@@ -471,6 +488,10 @@ function initSplashVideo() {
     'error',
     removeFailedVideo
   );
+
+  if (video.readyState >= 3) {
+    revealVideo();
+  }
 
   checkbox?.addEventListener(
     'change',

@@ -697,7 +697,7 @@ body:has(.splash) {
   justify-content: center;
 
   overflow: hidden;
-  background: #000;
+  background: #fff;
 
   transition:
     transform 0.6s ease;
@@ -772,6 +772,15 @@ body:has(.splash) {
   height: 100%;
 
   object-fit: cover;
+  opacity: 0;
+
+  transition:
+    opacity 0.35s ease;
+}
+
+.splash.is-video-ready
+.splash__video {
+  opacity: 1;
 }
 
 .splash__overlay {
@@ -798,11 +807,6 @@ body:has(.splash) {
   inset: 0;
   z-index: 2;
 
-  animation:
-    splash-fade-in
-    1s
-    ease
-    both;
 }
 
 .splash__name {
@@ -814,7 +818,7 @@ body:has(.splash) {
   margin: 0;
   padding: 0 1rem;
 
-  color: #fff;
+  color: #000;
 
   font-family:
     'Inter',
@@ -842,6 +846,23 @@ body:has(.splash) {
     );
 }
 
+.splash__tagline {
+  position: absolute;
+  top: 16.6667%;
+  left: 50%;
+
+  margin: 0;
+
+  color: #000;
+
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+
+  transform: translate(-50%, -50%);
+}
+
 .splash__cta {
   position: absolute;
   top: 83.3333%;
@@ -850,18 +871,11 @@ body:has(.splash) {
   display: inline-block;
   padding: 0.7rem 1.6rem;
 
-  border:
-    1px solid
-    rgba(
-      255,
-      255,
-      255,
-      0.6
-    );
+  border: 1px solid #000;
 
   border-radius: 10px;
 
-  color: #fff;
+  color: #000;
 
   font-family: var(--font-mono);
   font-size: 0.75rem;
@@ -884,13 +898,94 @@ body:has(.splash) {
 
 .splash__cta:hover,
 .splash__cta:focus-visible {
+  border-color: #000;
+  background: #000;
+  color: #fff;
+}
+
+.splash__loader {
+  position: absolute;
+  top: 61%;
+  left: 50%;
+  z-index: 2;
+
+  width: 2rem;
+  height: 2rem;
+
+  border: 0.25rem rgba(0, 0, 0, 0.25) solid;
+  border-top-color: #000;
+  border-radius: 50%;
+
+  animation: splash-loader-spin 0.6s infinite linear;
+
+  transform: translate(-50%, -50%);
+
+  transition: opacity 0.2s ease;
+}
+
+.splash.is-video-ready
+.splash__loader,
+.splash.is-video-unavailable
+.splash__loader {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.splash:not(.splash--black-text).is-video-ready
+.splash__name {
+  color: #fff;
+}
+
+.splash:not(.splash--black-text).is-video-ready
+.splash__tagline {
+  color: #fff;
+}
+
+.splash:not(.splash--black-text).is-video-ready
+.splash__cta {
+  border-color: rgba(255, 255, 255, 0.6);
+  color: #fff;
+}
+
+.splash:not(.splash--black-text).is-video-ready
+.splash__cta:hover,
+.splash:not(.splash--black-text).is-video-ready
+.splash__cta:focus-visible {
   border-color: #fff;
   background: #fff;
   color: var(--ink);
 }
 
+@keyframes splash-loader-spin {
+  from {
+    transform: translate(-50%, -50%) rotate(0deg);
+  }
+
+  to {
+    transform: translate(-50%, -50%) rotate(360deg);
+  }
+}
+
+.visually-hidden {
+  position: absolute;
+
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 .splash--black-text
 .splash__name {
+  color: #000;
+}
+
+.splash--black-text
+.splash__tagline {
   color: #000;
 }
 
@@ -914,6 +1009,7 @@ body:has(.splash) {
   .splash__image,
   .splash__images,
   .splash__content,
+  .splash__loader,
   .splash {
     animation: none;
     transition: none;
@@ -965,7 +1061,7 @@ body:has(.splash) {
 @media (max-width: 700px) {
   .project-grid {
     column-gap: 15px;
-    row-gap: 1.5rem;
+    row-gap: 15px;
   }
 }
 
@@ -1075,22 +1171,12 @@ body:has(.splash) {
    -------------------------------------------------------------------------- */
 
 /*
- * On phones, project titles are displayed
- * beneath the square project images.
+ * On phones, project titles remain within
+ * the square tile to keep the grid uniform.
  */
 
 @media (max-width: 700px) {
   .project-card {
-    display: flex;
-    flex-direction: column;
-
-    overflow: visible;
-
-    aspect-ratio: auto;
-
-    border-radius: 0;
-    background: transparent;
-
     touch-action: manipulation;
 
     -webkit-tap-highlight-color:
@@ -1098,14 +1184,7 @@ body:has(.splash) {
   }
 
   .project-card__image {
-    width: 100%;
-    height: auto;
-
-    aspect-ratio: 1 / 1;
-
-    border-radius: 10px;
-
-    object-fit: cover;
+    height: 100%;
   }
 
   .project-card:hover
@@ -1117,23 +1196,34 @@ body:has(.splash) {
   }
 
   .project-card__title {
-    position: static;
-    inset: auto;
+    position: absolute;
+    top: auto;
+    right: 0;
+    bottom: 0;
+    left: 0;
 
     display: block;
 
     margin: 0;
-    padding: 0.5rem 0.15rem 0;
+    padding: 10%;
 
-    background: none;
-    color: var(--ink-soft);
+    background:
+      linear-gradient(
+        to bottom,
+        transparent,
+        rgba(0, 0, 0, 0.6)
+      );
+
+    color: #fff;
 
     font-size: 0.68rem;
     line-height: 1.35;
     letter-spacing: 0.08em;
     text-align: center;
 
-    text-shadow: none;
+    text-shadow:
+      0 1px 3px
+      rgba(0, 0, 0, 0.6);
 
     opacity: 1;
   }

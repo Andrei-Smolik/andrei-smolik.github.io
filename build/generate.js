@@ -402,18 +402,10 @@ function ensureMiscellaneousInputFolder(
       miscellaneousDirectory
     )
   ) {
-    fs.mkdirSync(
-      miscellaneousDirectory,
-      {
-        recursive: true,
-      }
-    );
-
-    console.log(
-      `Created ${path.relative(
-        ROOT,
-        miscellaneousDirectory
-      )} for non-project website media.`
+    warnAndExit(
+      `Required miscellaneous media folder is missing at ` +
+      `${path.relative(ROOT, miscellaneousDirectory)}. ` +
+      'Create it before generating the website.'
     );
   }
 
@@ -2201,6 +2193,7 @@ function buildProjectPageData({
 function renderProjectPage(
   project,
   siteName,
+  siteVersion,
   template,
   projectReferences
 ) {
@@ -2418,6 +2411,9 @@ function renderProjectPage(
       SITE_NAME:
         escapeHtml(siteName),
 
+      SITE_VERSION:
+        escapeHtml(siteVersion),
+
       SUBTITLE:
         escapeHtml(subtitle),
 
@@ -2525,6 +2521,7 @@ function buildSplashImages(projects) {
 function renderIndexPage(
   projects,
   siteName,
+  siteVersion,
   template,
   splashVideoSource,
   splashTextClass
@@ -2683,6 +2680,9 @@ function renderIndexPage(
       SITE_NAME:
         escapeHtml(siteName),
 
+      SITE_VERSION:
+        escapeHtml(siteVersion),
+
       SPLASH_VIDEO_SRC:
         escapeHtml(
           splashVideoSource
@@ -2706,6 +2706,10 @@ async function main() {
   const siteName =
     config.name ||
     'Your Name';
+
+  const siteVersion =
+    config.version ||
+    '0.0';
 
   const projectPath =
     resolveProjectPath(config);
@@ -2992,6 +2996,7 @@ async function main() {
       renderProjectPage(
         project,
         siteName,
+        siteVersion,
         projectTemplate,
         projectReferenceIndex.references
       );
@@ -3016,6 +3021,7 @@ async function main() {
     renderIndexPage(
       projects,
       siteName,
+      siteVersion,
       indexTemplate,
       splashVideoSource,
       splashTextClass

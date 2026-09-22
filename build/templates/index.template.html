@@ -31,7 +31,7 @@
 
   <link
     rel="stylesheet"
-    href="style.css"
+    href="style.css?v={{ASSET_VERSION}}"
   />
 </head>
 
@@ -102,7 +102,20 @@
 
     <div class="splash__overlay"></div>
 
+    <div
+      class="splash__loader"
+      role="status"
+    >
+      <span class="visually-hidden">
+        Loading background video
+      </span>
+    </div>
+
     <div class="splash__content">
+
+      <p class="splash__tagline">
+        art | design | technology
+      </p>
 
       <h1
         class="splash__name"
@@ -177,6 +190,9 @@
         <span data-site-name>
           {{SITE_NAME}}
         </span>
+        <span class="site-footer__version">
+          (v{{SITE_VERSION}})
+        </span>
       </span>
 
     </footer>
@@ -193,7 +209,7 @@
     back
   </button>
 
-  <script src="include-partials.js"></script>
+  <script src="include-partials.js?v={{ASSET_VERSION}}"></script>
 
   <script>
     document
