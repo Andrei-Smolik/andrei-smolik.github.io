@@ -519,6 +519,43 @@ function initSplashVideo() {
 }
 
 /* --------------------------------------------------------------------------
+   Project video autoplay
+   -------------------------------------------------------------------------- */
+
+function initProjectVideos() {
+  const videos =
+    document.querySelectorAll(
+      '.project-video video'
+    );
+
+  videos.forEach((video) => {
+    video.muted = true;
+    video.defaultMuted = true;
+    video.loop = true;
+    video.controls = false;
+    video.playsInline = true;
+
+    function play() {
+      video.play().catch(() => {});
+    }
+
+    video.addEventListener(
+      'loadeddata',
+      play,
+      { once: true }
+    );
+
+    video.addEventListener(
+      'canplay',
+      play,
+      { once: true }
+    );
+
+    play();
+  });
+}
+
+/* --------------------------------------------------------------------------
    Splash interaction
    -------------------------------------------------------------------------- */
 
@@ -1214,6 +1251,7 @@ includePartials()
     resetIndexScrollOnProjectReturn();
     initScrollFadeIn();
     initTouchRubberBand();
+    initProjectVideos();
 
     initBackToTop();
   })

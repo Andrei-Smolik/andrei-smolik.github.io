@@ -794,6 +794,16 @@ body:has(.splash) {
     opacity 0.35s ease;
 }
 
+.splash__video::-webkit-media-controls,
+.splash__video::-webkit-media-controls-enclosure,
+.splash__video::-webkit-media-controls-start-playback-button,
+.project-video video::-webkit-media-controls,
+.project-video video::-webkit-media-controls-enclosure,
+.project-video video::-webkit-media-controls-start-playback-button {
+  display: none !important;
+  -webkit-appearance: none;
+}
+
 .splash.is-video-ready
 .splash__video {
   opacity: 1;
