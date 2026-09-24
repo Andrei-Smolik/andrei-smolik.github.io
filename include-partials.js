@@ -973,8 +973,14 @@ function initTouchRubberBand() {
       'pageScroll'
     );
 
+  const content =
+    pageScroll?.querySelector(
+      'main'
+    );
+
   if (
     !pageScroll ||
+    !content ||
     !isTouchDevice()
   ) {
     return;
@@ -988,14 +994,27 @@ function initTouchRubberBand() {
       return;
     }
 
-    pageScroll.classList.add(
+    content.classList.add(
       'is-rubberband-releasing'
     );
 
     offset = 0;
-    pageScroll.style.setProperty(
+    content.style.setProperty(
       '--rubberband-offset',
       '0px'
+    );
+
+    window.setTimeout(
+      () => {
+        content.classList.remove(
+          'is-rubberband-active'
+        );
+
+        content.classList.remove(
+          'is-rubberband-releasing'
+        );
+      },
+      450
     );
   }
 
@@ -1005,9 +1024,9 @@ function initTouchRubberBand() {
       startY = event.touches[0].clientY;
       offset = 0;
 
-      pageScroll.classList.remove(
-        'is-rubberband-releasing'
-      );
+    content.classList.remove(
+      'is-rubberband-releasing'
+    );
     },
     {
       passive: true,
@@ -1055,7 +1074,11 @@ function initTouchRubberBand() {
         )
       );
 
-      pageScroll.style.setProperty(
+      content.classList.add(
+        'is-rubberband-active'
+      );
+
+      content.style.setProperty(
         '--rubberband-offset',
         `${offset}px`
       );
@@ -1080,141 +1103,6 @@ function initTouchRubberBand() {
       passive: true,
     }
   );
-}
-
-/* --------------------------------------------------------------------------
-   Project video autoplay
-   -------------------------------------------------------------------------- */
-
-function initVideosInView() {
-  const videos =
-    document.querySelectorAll(
-      'video[data-autoplay-in-view]'
-    );
-
-  if (videos.length === 0) {
-    return;
-  }
-
-  videos.forEach((video) => {
-    video.muted = true;
-  });
-
-  if (
-    !(
-      'IntersectionObserver'
-      in window
-    )
-  ) {
-    videos.forEach((video) => {
-      video
-        .play()
-        .catch(() => {});
-    });
-
-    return;
-  }
-
-  const pageScroll =
-    document.getElementById(
-      'pageScroll'
-    );
-
-  const observer =
-    new IntersectionObserver(
-      (entries) => {
-        entries.forEach(
-          (entry) => {
-            const video =
-              entry.target;
-
-            if (
-              entry.isIntersecting &&
-              entry.intersectionRatio >=
-                0.35
-            ) {
-              video
-                .play()
-                .catch(() => {});
-            } else {
-              video.pause();
-            }
-          }
-        );
-      },
-      {
-        root:
-          pageScroll ||
-          null,
-
-        threshold: [
-          0,
-          0.35,
-        ],
-      }
-    );
-
-  videos.forEach((video) => {
-    observer.observe(video);
-  });
-}
-
-/* --------------------------------------------------------------------------
-   Project video controls
-   -------------------------------------------------------------------------- */
-
-function initProjectVideoControls() {
-  const videos =
-    document.querySelectorAll(
-      '.project-video video'
-    );
-
-  if (videos.length === 0) {
-    return;
-  }
-
-  const supportsHover =
-    window.matchMedia(
-      '(hover: hover) and ' +
-      '(pointer: fine)'
-    ).matches;
-
-  videos.forEach((video) => {
-    if (!supportsHover) {
-      video.controls = true;
-      return;
-    }
-
-    function showControls() {
-      video.controls = true;
-    }
-
-    function hideControls() {
-      video.controls = false;
-    }
-
-    hideControls();
-
-    video.addEventListener(
-      'mouseenter',
-      showControls
-    );
-
-    video.addEventListener(
-      'mouseleave',
-      hideControls
-    );
-
-    video.addEventListener(
-      'focus',
-      showControls
-    );
-
-    video.addEventListener(
-      'blur',
-      hideControls
-    );
-  });
 }
 
 /* --------------------------------------------------------------------------
@@ -1327,8 +1215,6 @@ includePartials()
     initScrollFadeIn();
     initTouchRubberBand();
 
-    initProjectVideoControls();
-    initVideosInView();
     initBackToTop();
   })
   .catch((error) => {

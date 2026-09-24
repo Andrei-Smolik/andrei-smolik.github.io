@@ -562,18 +562,12 @@ a:not(.site-nav__name):focus-visible {
   height: 100%;
   overflow-y: auto;
 
-  transform:
-    translateY(
-      var(--rubberband-offset, 0px)
-    );
-
   -webkit-overflow-scrolling:
     touch;
 
   overscroll-behavior-y:
     none;
 
-  transition: none;
 
   scroll-padding-top:
     calc(
@@ -582,7 +576,16 @@ a:not(.site-nav__name):focus-visible {
     );
 }
 
-.page-scroll.is-rubberband-releasing {
+main.is-rubberband-active {
+  transition: none;
+
+  transform:
+    translateY(
+      var(--rubberband-offset, 0px)
+    ) !important;
+}
+
+main.is-rubberband-releasing {
   transition:
     transform 0.45s
     cubic-bezier(0.22, 1, 0.36, 1);

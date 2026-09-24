@@ -143,12 +143,11 @@
         <!-- IF:GALLERY_VIDEO_ITEM -->
         <figure class="project-image project-video fade-in">
           <video
-            controls
+            autoplay
+            loop
             muted
-            preload="metadata"
+            preload="auto"
             playsinline
-            tabindex="0"
-            data-autoplay-in-view
           >
             <source
               src="{{GALLERY_VIDEO_SRC}}"
