@@ -867,7 +867,7 @@ function initScrollFadeIn() {
 
     pageScroll.style
       .overscrollBehaviorY =
-        'contain';
+        'auto';
   }
 
   const observer =
@@ -959,6 +959,125 @@ function initScrollFadeIn() {
       }
 
       observer.observe(element);
+    }
+  );
+}
+
+/* --------------------------------------------------------------------------
+   Touch rubber-band overscroll
+   -------------------------------------------------------------------------- */
+
+function initTouchRubberBand() {
+  const pageScroll =
+    document.getElementById(
+      'pageScroll'
+    );
+
+  if (
+    !pageScroll ||
+    !isTouchDevice()
+  ) {
+    return;
+  }
+
+  let startY = 0;
+  let offset = 0;
+
+  function release() {
+    if (offset === 0) {
+      return;
+    }
+
+    pageScroll.classList.add(
+      'is-rubberband-releasing'
+    );
+
+    offset = 0;
+    pageScroll.style.setProperty(
+      '--rubberband-offset',
+      '0px'
+    );
+  }
+
+  pageScroll.addEventListener(
+    'touchstart',
+    (event) => {
+      startY = event.touches[0].clientY;
+      offset = 0;
+
+      pageScroll.classList.remove(
+        'is-rubberband-releasing'
+      );
+    },
+    {
+      passive: true,
+    }
+  );
+
+  pageScroll.addEventListener(
+    'touchmove',
+    (event) => {
+      const currentY =
+        event.touches[0].clientY;
+
+      const distance =
+        currentY - startY;
+
+      const atTop =
+        pageScroll.scrollTop <= 0;
+
+      const atBottom =
+        pageScroll.scrollTop >=
+        pageScroll.scrollHeight -
+          pageScroll.clientHeight -
+          1;
+
+      const pullingPastTop =
+        atTop && distance > 0;
+
+      const pullingPastBottom =
+        atBottom && distance < 0;
+
+      if (
+        !pullingPastTop &&
+        !pullingPastBottom
+      ) {
+        return;
+      }
+
+      event.preventDefault();
+
+      offset = Math.max(
+        -96,
+        Math.min(
+          96,
+          distance * 0.35
+        )
+      );
+
+      pageScroll.style.setProperty(
+        '--rubberband-offset',
+        `${offset}px`
+      );
+    },
+    {
+      passive: false,
+    }
+  );
+
+  pageScroll.addEventListener(
+    'touchend',
+    release,
+    {
+      passive: true,
+    }
+  );
+
+  pageScroll.addEventListener(
+    'touchcancel',
+    release,
+    {
+      passive: true,
     }
   );
 }
@@ -1206,6 +1325,7 @@ includePartials()
 
     resetIndexScrollOnProjectReturn();
     initScrollFadeIn();
+    initTouchRubberBand();
 
     initProjectVideoControls();
     initVideosInView();

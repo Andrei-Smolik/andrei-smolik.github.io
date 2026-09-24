@@ -562,17 +562,30 @@ a:not(.site-nav__name):focus-visible {
   height: 100%;
   overflow-y: auto;
 
+  transform:
+    translateY(
+      var(--rubberband-offset, 0px)
+    );
+
   -webkit-overflow-scrolling:
     touch;
 
   overscroll-behavior-y:
-    contain;
+    none;
+
+  transition: none;
 
   scroll-padding-top:
     calc(
       var(--nav-height) +
       var(--content-gap)
     );
+}
+
+.page-scroll.is-rubberband-releasing {
+  transition:
+    transform 0.45s
+    cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .page-scroll main {
@@ -858,6 +871,7 @@ body:has(.splash) {
   font-family: var(--font-mono);
   font-size: 0.75rem;
   letter-spacing: 0.08em;
+  white-space: nowrap;
   text-transform: uppercase;
 
   transform: translate(-50%, -50%);
@@ -1564,8 +1578,13 @@ main.project {
 
 .back-to-top {
   position: fixed;
-  left: 50%;
-  right: auto;
+  right:
+    clamp(
+      1rem,
+      3vw,
+      2rem
+    );
+  left: auto;
 
   bottom:
     clamp(
@@ -1576,20 +1595,25 @@ main.project {
 
   z-index: 40;
 
-  display: inline-block;
-  padding: 0.35rem 1.6rem;
+  display: grid;
+  width: 2.75rem;
+  height: 2.75rem;
+  padding: 0;
 
   border: 1px solid var(--ink);
-  border-radius: 10px;
+  border-radius: 50%;
 
-  background: var(--paper);
+  background: #fff;
   color: var(--ink);
 
   font-family: var(--font-mono);
-  font-size: 0.75rem;
-  letter-spacing: 0.08em;
-  text-transform: lowercase;
-  white-space: nowrap;
+  font-size: 1.25rem;
+  line-height: 1;
+  place-items: center;
+
+  box-shadow:
+    0 0.35rem 1rem
+    rgba(0, 0, 0, 0.16);
 
   cursor: pointer;
 
@@ -1599,7 +1623,7 @@ main.project {
 
   transform:
     translate(
-      -50%,
+      0,
       0.5rem
     );
 
@@ -1619,16 +1643,15 @@ main.project {
 
   transform:
     translate(
-      -50%,
+      0,
       0
     );
 }
 
 .back-to-top:hover,
 .back-to-top:focus-visible {
-  border-color: var(--ink);
   background: var(--ink);
-  color: var(--paper);
+  color: #fff;
 }
 
 @media (prefers-reduced-motion: reduce) {
