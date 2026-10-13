@@ -4,13 +4,20 @@
   <div class="site-nav__links" id="siteNavLinks">
     <div class="site-nav__primary">
       <a href="index.html#projects" class="site-nav__link site-nav__link--portfolio">Portfolio</a>
+      <span class="site-nav__separator site-nav__separator--about" aria-hidden="true">|</span>
       <a href="about.html" class="site-nav__link site-nav__link--about">About</a>
+      <span class="site-nav__separator" aria-hidden="true">|</span>
       <a href="#" class="site-nav__link" data-contact-mailto>Contact</a>
     </div>
 
     <div class="site-nav__search-group">
       <div class="site-nav__search">
-        <button type="button" class="site-nav__search-label" id="siteNavSearchToggle">Search</button>
+        <button type="button" class="site-nav__search-label" id="siteNavSearchToggle" aria-label="Search projects">
+          <svg class="site-nav__search-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <circle cx="10.5" cy="10.5" r="6.5" />
+            <path d="M15.25 15.25 21 21" />
+          </svg>
+        </button>
         <input
           type="search"
           class="site-nav__search-input"

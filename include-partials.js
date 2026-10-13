@@ -262,19 +262,28 @@ async function initContactLinks() {
    Navigation visibility
    -------------------------------------------------------------------------- */
 
-function hidePortfolioLinkOnIndex() {
-  if (!isIndexPage()) {
-    return;
-  }
+function markCurrentNavLink() {
+  const path = window.location.pathname;
 
-  const link =
-    document.querySelector(
-      '.site-nav__link--portfolio'
-    );
+  document.querySelectorAll('.site-nav__link').forEach((link) => {
+    link.removeAttribute('aria-current');
 
-  if (link) {
-    link.style.display = 'none';
-  }
+    if (link.classList.contains('site-nav__link--portfolio')) {
+      if (isIndexPage()) {
+        link.setAttribute('aria-current', 'page');
+      }
+    } else if (new URL(link.href).pathname === path) {
+      link.setAttribute('aria-current', 'page');
+    }
+
+    if (link.hasAttribute('aria-current')) {
+      // Remove navigation for mouse, keyboard and assistive activation.
+      link.removeAttribute('href');
+      link.setAttribute('role', 'link');
+      link.setAttribute('aria-disabled', 'true');
+      link.setAttribute('tabindex', '-1');
+    }
+  });
 }
 
 function hideSearchOffIndex() {
@@ -570,52 +579,100 @@ function initSplashScrollTrigger() {
       'splashUnlock'
     );
 
-  if (!splash || !checkbox) {
+  const pageScroll = document.getElementById('pageScroll');
+
+  if (!splash || !checkbox || !pageScroll) {
     return;
   }
 
-  function dismissSplash() {
-    if (checkbox.checked) {
+  let scrollLocked = false;
+  let touchActive = false;
+  let transitionUntil = 0;
+  let lastInputAt = 0;
+  let releaseTimer;
+
+  function releaseWhenIdle() {
+    window.clearTimeout(releaseTimer);
+    if (!scrollLocked || touchActive) {
       return;
     }
 
-    checkbox.checked = true;
+    const wait = Math.max(transitionUntil, lastInputAt + 180) - performance.now();
+    if (wait > 0) {
+      releaseTimer = window.setTimeout(releaseWhenIdle, wait);
+      return;
+    }
 
-    checkbox.dispatchEvent(
-      new Event('change')
-    );
+    pageScroll.scrollTop = 0;
+    pageScroll.classList.remove('is-splash-scroll-locked');
+    scrollLocked = false;
   }
 
-  splash.addEventListener(
-    'wheel',
-    dismissSplash,
-    {
-      passive: true,
+  function consumeOpeningGesture(event) {
+    if (checkbox.checked && !scrollLocked) {
+      return;
     }
-  );
 
-  splash.addEventListener(
-    'touchmove',
-    dismissSplash,
-    {
-      passive: true,
+    if (event.cancelable) {
+      event.preventDefault();
     }
-  );
+    event.stopImmediatePropagation();
+    lastInputAt = performance.now();
 
-  splash.addEventListener(
-    'keydown',
-    (event) => {
-      const keys = [
-        'ArrowDown',
-        'PageDown',
-        ' ',
-      ];
+    if (!scrollLocked) {
+      scrollLocked = true;
+      // Cover the 600ms splash transition, then wait for wheel momentum to end.
+      transitionUntil = lastInputAt + 650;
+      pageScroll.classList.add('is-splash-scroll-locked');
+      pageScroll.scrollTop = 0;
+      checkbox.checked = true;
+      checkbox.dispatchEvent(new Event('change'));
+    }
 
-      if (keys.includes(event.key)) {
-        dismissSplash();
+    releaseWhenIdle();
+  }
+
+  // Capture at document level: the splash stops receiving events as it exits,
+  // but the rest of that same gesture must not reach the tiles beneath it.
+  document.addEventListener('wheel', (event) => {
+    if (!event.ctrlKey && (event.deltaX || event.deltaY)) {
+      consumeOpeningGesture(event);
+    }
+  }, { passive: false, capture: true });
+
+  document.addEventListener('touchstart', () => {
+    if (!checkbox.checked || scrollLocked) {
+      touchActive = true;
+    }
+  }, { passive: true, capture: true });
+
+  document.addEventListener('touchmove', consumeOpeningGesture,
+    { passive: false, capture: true });
+
+  function endTouch(event) {
+    if (event.touches.length === 0) {
+      touchActive = false;
+      if (scrollLocked) {
+        lastInputAt = performance.now();
+        releaseWhenIdle();
       }
     }
-  );
+  }
+
+  document.addEventListener('touchend', endTouch, { passive: true, capture: true });
+  document.addEventListener('touchcancel', endTouch, { passive: true, capture: true });
+
+  document.addEventListener('keydown', (event) => {
+    if (['ArrowDown', 'PageDown', ' '].includes(event.key)) {
+      consumeOpeningGesture(event);
+    }
+  }, { capture: true });
+
+  pageScroll.addEventListener('scroll', () => {
+    if (scrollLocked && pageScroll.scrollTop !== 0) {
+      pageScroll.scrollTop = 0;
+    }
+  }, { passive: true });
 }
 
 /* --------------------------------------------------------------------------
@@ -785,6 +842,9 @@ function initNavHeightSync() {
     return;
   }
 
+  const textMeasure = document.createElement('canvas').getContext('2d');
+  const contactLink = navigation.querySelector('[data-contact-mailto]');
+
   function syncHeight() {
     const height =
       navigation
@@ -797,6 +857,38 @@ function initNavHeightSync() {
         '--nav-height',
         `${height}px`
       );
+
+    // Opening a second search row should move content down with the nav,
+    // without also enlarging the established gap below the divider.
+    if (navigation.querySelector('.site-nav__links.is-searching') ||
+        !textMeasure || !contactLink || !contactLink.getClientRects().length) {
+      return;
+    }
+
+    const textStyle = getComputedStyle(contactLink);
+    textMeasure.font = `${textStyle.fontWeight} ${textStyle.fontSize} ${textStyle.fontFamily}`;
+    const label = contactLink.textContent.trim();
+    const renderedLabel = textStyle.textTransform === 'uppercase'
+      ? label.toUpperCase()
+      : label;
+    const metrics = textMeasure.measureText(renderedLabel);
+
+    // A zero-sized inline box sits on the actual text baseline. Canvas ink
+    // metrics exclude the font's invisible leading and descender space.
+    const baseline = document.createElement('span');
+    baseline.setAttribute('aria-hidden', 'true');
+    baseline.style.cssText = 'display:inline-block;width:0;height:0;padding:0;margin:0;border:0;vertical-align:baseline;';
+    contactLink.append(baseline);
+    const textBottom = baseline.getBoundingClientRect().top
+      + metrics.actualBoundingBoxDescent;
+    baseline.remove();
+
+    const dividerThickness = parseFloat(getComputedStyle(navigation, '::after').height);
+    const dividerTop = navigation.getBoundingClientRect().bottom - dividerThickness;
+    const gap = Math.max(0, dividerTop - textBottom);
+
+    // Keep the space below the divider twice the visible space above it.
+    document.documentElement.style.setProperty('--nav-content-gap', `${gap * 2}px`);
   }
 
   syncHeight();
@@ -805,6 +897,9 @@ function initNavHeightSync() {
     'resize',
     syncHeight
   );
+
+  document.fonts.ready.then(syncHeight);
+  new ResizeObserver(syncHeight).observe(navigation);
 }
 
 /* --------------------------------------------------------------------------
@@ -1240,7 +1335,7 @@ includePartials()
 
     await initContactLinks();
 
-    hidePortfolioLinkOnIndex();
+    markCurrentNavLink();
     hideSearchOffIndex();
 
     initProjectSearch();

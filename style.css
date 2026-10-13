@@ -2,7 +2,7 @@
    style.css
    ========================================================================== */
 
-@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;1,9..144,400;1,9..144,500&family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500;600&family=Jost:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;1,9..144,400;1,9..144,500&family=IBM+Plex+Mono:wght@400;500;700&family=Inter:wght@400;500;600&family=Jost:wght@400;500&display=swap');
 
 /* --------------------------------------------------------------------------
    Variables
@@ -15,6 +15,7 @@
   --ink-soft: #6b6b64;
   --line: #dbd9d1;
   --accent: #1f3a93;
+  --nav-hover: #3569d4;
 
   --font-display:
     'Fraunces',
@@ -40,7 +41,9 @@
   --gutter: var(--gutter-landscape);
 
   --nav-height: 5.5rem;
+  --nav-search-height: 1.6rem;
   --nav-link-gap: 0.5rem;
+  --nav-content-gap: calc(var(--nav-link-gap) * 4);
 
   --content-gap:
     calc(
@@ -184,15 +187,15 @@ button {
 .site-nav {
   position: fixed;
   top: 0;
-  right: 0;
-  left: 0;
+  right: var(--gutter);
+  left: var(--gutter);
   z-index: 20;
 
   min-height: 4.75rem;
 
   padding:
     1rem
-    var(--gutter)
+    0
     var(--nav-link-gap);
 
   background: var(--paper);
@@ -227,12 +230,12 @@ button {
   content: '';
 
   position: absolute;
-  right: var(--gutter);
+  right: 0;
   bottom: 0;
-  left: var(--gutter);
+  left: 0;
 
-  height: 1px;
-  background: var(--line);
+  height: 1.5px;
+  background: #000000;
 }
 
 .site-nav__name {
@@ -259,15 +262,15 @@ button {
 
 .site-nav__name:hover,
 .site-nav__name:focus-visible {
-  color: var(--ink-soft);
+  color: var(--nav-hover);
 }
 
 .site-nav__links {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
 
-  gap: 1rem;
   min-height: 2rem;
 }
 
@@ -275,29 +278,22 @@ button {
   display: flex;
   align-items: center;
 
-  gap: 1.25rem;
-  max-width: 20rem;
+  gap: 0.75rem;
 
   overflow: hidden;
   opacity: 1;
 
   transition:
-    max-width 0.35s ease,
-    opacity 0.25s ease,
-    margin 0.35s ease;
+    opacity 0.25s ease;
 }
 
-.site-nav__links.is-searching
-.site-nav__primary {
-  max-width: 0;
-  margin: 0;
-
-  opacity: 0;
-  pointer-events: none;
+.site-nav__separator {
+  color: #333333;
+  font-size: 0.75rem;
 }
 
 .site-nav__link {
-  color: var(--ink-soft);
+  color: #333333;
 
   font-family: var(--font-mono);
   font-size: 0.75rem;
@@ -309,45 +305,30 @@ button {
 /* Remove this rule to show
    the About link again. */
 
-.site-nav__link--about {
+.site-nav__link--about,
+.site-nav__separator--about {
   display: none;
 }
 
-.site-nav__link:hover,
-.site-nav__link:focus-visible {
-  color: var(--ink);
+.site-nav__link:not([aria-disabled="true"]):hover,
+.site-nav__link:not([aria-disabled="true"]):focus-visible {
+  color: var(--nav-hover);
 }
 
-/* Animated navigation underline. */
+/* Navigation links fade to blue-grey without an underline. */
 
 .site-nav
 a:not(.site-nav__name) {
   text-decoration: none;
 
-  background-image:
-    linear-gradient(
-      currentColor,
-      currentColor
-    );
-
-  background-repeat: no-repeat;
-  background-position:
-    center bottom;
-
-  background-size:
-    0 1px;
-
   transition:
-    color 0.2s ease,
-    background-size 0.28s ease;
+    color 0.2s ease;
 }
 
-.site-nav
-a:not(.site-nav__name):hover,
-.site-nav
-a:not(.site-nav__name):focus-visible {
-  background-size:
-    100% 1px;
+.site-nav .site-nav__link[aria-current] {
+  font-weight: 700;
+  cursor: default;
+  pointer-events: none;
 }
 
 /* --------------------------------------------------------------------------
@@ -355,7 +336,10 @@ a:not(.site-nav__name):focus-visible {
    -------------------------------------------------------------------------- */
 
 .site-nav__search-group {
-  position: relative;
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
 
   display: inline-flex;
   align-items: center;
@@ -377,7 +361,7 @@ a:not(.site-nav__name):focus-visible {
   display: flex;
   align-items: center;
 
-  width: 4rem;
+  width: 2rem;
   height: 2rem;
 
   overflow: hidden;
@@ -398,6 +382,8 @@ a:not(.site-nav__name):focus-visible {
       55vw
     );
 
+  height: var(--nav-search-height);
+
   border-color:
     var(--ink-soft);
 }
@@ -407,13 +393,13 @@ a:not(.site-nav__name):focus-visible {
   top: 50%;
   left: 50%;
 
-  color: var(--ink-soft);
+  display: grid;
+  place-items: center;
+  width: 1.8rem;
+  height: 1.8rem;
+  padding: 0;
 
-  font-family: var(--font-mono);
-  font-size: 0.75rem;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  white-space: nowrap;
+  color: #333333;
 
   transform:
     translate(
@@ -421,31 +407,23 @@ a:not(.site-nav__name):focus-visible {
       -50%
     );
 
-  background-image:
-    linear-gradient(
-      currentColor,
-      currentColor
-    );
-
-  background-repeat: no-repeat;
-  background-position:
-    center bottom;
-
-  background-size:
-    0 1px;
-
   transition:
     opacity 0.25s ease,
-    color 0.2s ease,
-    background-size 0.28s ease;
+    color 0.2s ease;
+}
+
+.site-nav__search-icon {
+  width: 1.125rem;
+  height: 1.125rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.75;
+  stroke-linecap: round;
 }
 
 .site-nav__search-label:hover,
 .site-nav__search-label:focus-visible {
-  color: var(--ink);
-
-  background-size:
-    100% 1px;
+  color: var(--nav-hover);
 }
 
 .site-nav__links.is-searching
@@ -464,8 +442,8 @@ a:not(.site-nav__name):focus-visible {
   align-items: center;
   justify-content: center;
 
-  width: 1.8rem;
-  height: 1.8rem;
+  width: var(--nav-search-height);
+  height: var(--nav-search-height);
 
   border: 1px solid var(--ink-soft);
   border-radius: 50%;
@@ -486,14 +464,14 @@ a:not(.site-nav__name):focus-visible {
   transition:
     opacity 0.25s ease,
     transform 0.25s ease,
-    background-color 0.2s ease,
+    border-color 0.2s ease,
     color 0.2s ease;
 }
 
 .site-nav__search-close:hover,
 .site-nav__search-close:focus-visible {
-  background: var(--ink);
-  color: var(--paper);
+  border-color: var(--nav-hover);
+  color: var(--nav-hover);
 }
 
 .site-nav__links.is-searching
@@ -554,11 +532,35 @@ a:not(.site-nav__name):focus-visible {
   pointer-events: auto;
 }
 
+/* Give the expanded field its own row before it can overlap the links. */
+@media (max-width: 1440px) {
+  .site-nav__links.is-searching {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: 2rem auto;
+    row-gap: 0.5rem;
+  }
+
+  .site-nav__links.is-searching .site-nav__primary {
+    justify-self: center;
+  }
+
+  .site-nav__links.is-searching .site-nav__search-group {
+    position: relative;
+    top: auto;
+    transform: none;
+    justify-self: end;
+    min-height: 1.8rem;
+  }
+}
+
 /* --------------------------------------------------------------------------
    Page layout
    -------------------------------------------------------------------------- */
 
 .page-scroll {
+  display: flex;
+  flex-direction: column;
   height: 100%;
   overflow-y: auto;
 
@@ -572,8 +574,12 @@ a:not(.site-nav__name):focus-visible {
   scroll-padding-top:
     calc(
       var(--nav-height) +
-      var(--content-gap)
+      var(--nav-content-gap)
     );
+}
+
+.page-scroll.is-splash-scroll-locked {
+  overflow-y: hidden;
 }
 
 main.is-rubberband-active {
@@ -592,10 +598,12 @@ main.is-rubberband-releasing {
 }
 
 .page-scroll main {
+  flex: 1 0 auto;
+
   padding-top:
     calc(
       var(--nav-height) +
-      var(--content-gap)
+      var(--nav-content-gap)
     );
 }
 
@@ -615,6 +623,7 @@ main {
 
 .site-footer {
   position: relative;
+  flex-shrink: 0;
 
   display: flex;
   align-items: center;
@@ -636,8 +645,8 @@ main {
   right: var(--gutter);
   left: var(--gutter);
 
-  height: 1px;
-  background: var(--line);
+  height: 1.5px;
+  background: #000000;
 }
 
 /* --------------------------------------------------------------------------
@@ -1067,7 +1076,7 @@ body:has(.splash) {
   scroll-margin-top:
     calc(
       var(--nav-height) +
-      var(--content-gap)
+      var(--nav-content-gap)
     );
 }
 
@@ -1104,6 +1113,7 @@ body:has(.splash) {
 
   aspect-ratio: 1 / 1;
 
+  border: 2px solid #000;
   border-radius: 10px;
   background: var(--paper-dim);
 }
@@ -1264,7 +1274,7 @@ main.project {
   padding-top:
     calc(
       var(--nav-height) +
-      var(--content-gap)
+      var(--nav-content-gap)
     );
 }
 

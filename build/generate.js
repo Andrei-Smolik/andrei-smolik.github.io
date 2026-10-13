@@ -37,6 +37,7 @@ function buildAssetVersion() {
   const assetFiles = [
     'style.css',
     'include-partials.js',
+    'nav.html',
   ];
 
   for (
