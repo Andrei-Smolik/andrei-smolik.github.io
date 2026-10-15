@@ -2209,7 +2209,7 @@ function renderProjectPage(
   } = project;
 
   const year =
-    data.year ?? '';
+    data.year ?? data.year_completed ?? '';
 
   const subtitle =
     data.subtitle || '';
