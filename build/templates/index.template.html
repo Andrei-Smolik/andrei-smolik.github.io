@@ -124,12 +124,15 @@
         {{SITE_NAME}}
       </h1>
 
-      <label
-        for="splashUnlock"
+      <button
+        type="button"
         class="splash__cta"
+        aria-label="View portfolio"
       >
-        Portfolio
-      </label>
+        <svg viewBox="0 0 20 20" aria-hidden="true" focusable="false">
+          <path d="M10 3v14M5 12l5 5 5-5" />
+        </svg>
+      </button>
 
     </div>
 
@@ -207,7 +210,7 @@
     aria-hidden="true"
     tabindex="-1"
   >
-    <span aria-hidden="true">↑</span>
+    <svg viewBox="0 0 20 20" aria-hidden="true" focusable="false"><path d="M10 17V3M5 8l5-5 5 5" /></svg>
   </button>
 
   <script src="include-partials.js?v={{ASSET_VERSION}}"></script>

@@ -467,18 +467,10 @@ a:not(.site-nav__name) {
     opacity 0.25s ease,
     transform 0.25s ease,
     border-color 0.2s ease,
+    background-color 0.2s ease,
     color 0.2s ease;
 }
 
-.site-nav__search-close:hover,
-.site-nav__search-close:focus-visible,
-.back-to-top:hover,
-.back-to-top:focus-visible,
-.project-text-scroll:hover,
-.project-text-scroll:focus-visible {
-  border-color: var(--nav-hover);
-  color: var(--nav-hover);
-}
 
 .site-nav__links.is-searching
 .site-nav__search-close {
@@ -910,19 +902,17 @@ body:has(.splash) {
   top: 83.3333%;
   left: 50%;
 
-  display: inline-block;
-  padding: 0.7rem 1.6rem;
-
-  border: 1px solid #000;
-
-  border-radius: 10px;
-
-  color: #000;
-
-  font-family: var(--font-mono);
-  font-size: 0.75rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  display: grid;
+  place-items: center;
+  width: var(--nav-search-height);
+  height: var(--nav-search-height);
+  margin: 0;
+  padding: 0;
+  border: 2px solid var(--ink-soft);
+  border-radius: 50%;
+  background: #fff;
+  color: var(--ink-soft);
+  font: 0.9rem/1 var(--font-mono);
 
   cursor: pointer;
 
@@ -938,11 +928,19 @@ body:has(.splash) {
     border-color 0.2s ease;
 }
 
-.splash__cta:hover,
-.splash__cta:focus-visible {
-  border-color: #000;
-  background: #000;
-  color: #fff;
+
+.splash__cta svg,
+.back-to-top svg,
+.project-text-scroll svg,
+.site-nav__search-close svg {
+  display: block;
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 .splash__loader {
@@ -983,21 +981,6 @@ body:has(.splash) {
   color: #fff;
 }
 
-.splash:not(.splash--black-text).is-video-ready
-.splash__cta {
-  border-color: rgba(255, 255, 255, 0.6);
-  color: #fff;
-}
-
-.splash:not(.splash--black-text).is-video-ready
-.splash__cta:hover,
-.splash:not(.splash--black-text).is-video-ready
-.splash__cta:focus-visible {
-  border-color: #fff;
-  background: #fff;
-  color: var(--ink);
-}
-
 @keyframes splash-loader-spin {
   from {
     transform: translate(-50%, -50%) rotate(0deg);
@@ -1029,22 +1012,6 @@ body:has(.splash) {
 .splash--black-text
 .splash__tagline {
   color: #000;
-}
-
-.splash--black-text
-.splash__cta {
-  border-color: #000;
-  background: #fff;
-  color: #000;
-}
-
-.splash--black-text
-.splash__cta:hover,
-.splash--black-text
-.splash__cta:focus-visible {
-  border-color: #000;
-  background: #000;
-  color: #fff;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -1137,7 +1104,7 @@ body:has(.splash) {
   object-fit: cover;
 
   transition:
-    transform 0.5s ease,
+    transform 1s ease,
     filter 0.5s ease;
 }
 
@@ -1163,13 +1130,7 @@ body:has(.splash) {
   margin: 0;
   padding: 1rem;
 
-  background:
-    rgba(
-      0,
-      0,
-      0,
-      0.35
-    );
+  background: rgba(0, 0, 0, 0.35);
 
   color: #fff;
 
@@ -1186,14 +1147,7 @@ body:has(.splash) {
   text-align: center;
   text-transform: uppercase;
 
-  text-shadow:
-    0 1px 4px
-    rgba(
-      0,
-      0,
-      0,
-      0.6
-    );
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
 
   opacity: 0;
 
@@ -1240,6 +1194,7 @@ body:has(.splash) {
   .project-card__image,
   .project-card:focus-visible
   .project-card__image {
+    opacity: 1;
     filter: none;
     transform: none;
   }
@@ -1819,6 +1774,33 @@ main.project {
       var(--back-to-top-x, 0),
       0
     );
+}
+
+/* Shared circular controls; placement and visibility stay component-specific. */
+.splash__cta,
+.back-to-top,
+.project-text-scroll,
+.site-nav__search-close {
+  width: var(--nav-search-height);
+  height: var(--nav-search-height);
+  padding: 0;
+  border: 1px solid #000;
+  border-radius: 50%;
+  background: #fff;
+  color: #000;
+}
+
+.splash__cta:hover,
+.splash__cta:focus-visible,
+.back-to-top:hover,
+.back-to-top:focus-visible,
+.project-text-scroll:hover,
+.project-text-scroll:focus-visible,
+.site-nav__search-close:hover,
+.site-nav__search-close:focus-visible {
+  background: var(--nav-hover);
+  border-color: transparent;
+  color: #fff;
 }
 
 body:has(main.project) .back-to-top {

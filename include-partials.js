@@ -586,6 +586,10 @@ function initSplashScrollTrigger() {
   }
 
   let scrollLocked = false;
+  splash.querySelector('.splash__cta')?.addEventListener('click', () => {
+    checkbox.checked = true;
+    checkbox.dispatchEvent(new Event('change'));
+  });
   let touchActive = false;
   let transitionUntil = 0;
   let lastInputAt = 0;
@@ -1369,6 +1373,7 @@ function initProjectTextScroll() {
   button.setAttribute('aria-controls', panel.id);
   const icon = document.createElement('span');
   icon.setAttribute('aria-hidden', 'true');
+  icon.innerHTML = '<svg viewBox="0 0 20 20" focusable="false"><path d="M10 3v14M5 12l5 5 5-5" /></svg>';
   button.append(icon);
   document.body.append(button);
 
@@ -1408,7 +1413,9 @@ function initProjectTextScroll() {
     }
     panel.classList.toggle('is-text-scrollable', scrollable);
     const label = atBottom() ? 'Scroll to top of project text' : 'Scroll to bottom of project text';
-    icon.textContent = atBottom() ? '↑' : '↓';
+    icon.querySelector('path').setAttribute('d', atBottom()
+      ? 'M10 17V3M5 8l5-5 5 5'
+      : 'M10 3v14M5 12l5 5 5-5');
     button.setAttribute('aria-label', label);
     button.title = label;
   }
