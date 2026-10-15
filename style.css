@@ -44,6 +44,8 @@
   --nav-search-height: 1.6rem;
   --nav-link-gap: 0.5rem;
   --nav-content-gap: calc(var(--nav-link-gap) * 4);
+  --project-column-gap: clamp(1.5rem, 3vw, 3rem);
+  --scroll-control-bottom: calc(clamp(1.25rem, 3vw, 2rem) + var(--nav-search-height) * 1.5);
 
   --content-gap:
     calc(
@@ -187,7 +189,7 @@ button {
 .site-nav {
   position: fixed;
   top: 0;
-  right: var(--gutter);
+  right: calc(var(--gutter) + var(--page-scrollbar-width, 0px));
   left: var(--gutter);
   z-index: 20;
 
@@ -469,7 +471,11 @@ a:not(.site-nav__name) {
 }
 
 .site-nav__search-close:hover,
-.site-nav__search-close:focus-visible {
+.site-nav__search-close:focus-visible,
+.back-to-top:hover,
+.back-to-top:focus-visible,
+.project-text-scroll:hover,
+.project-text-scroll:focus-visible {
   border-color: var(--nav-hover);
   color: var(--nav-hover);
 }
@@ -1085,6 +1091,12 @@ body:has(.splash) {
 }
 
 @media (min-width: 900px) {
+  body:has(.project-grid) {
+    /* Three square columns, with room for 2.5 rows and two 20px gaps. */
+    --grid-height-width: calc((100svh - var(--nav-height) - var(--nav-content-gap) - 40px) * 1.2 + 40px);
+    --gutter: max(var(--gutter-landscape), calc((100vw - var(--page-scrollbar-width, 0px) - var(--grid-height-width)) / 2));
+  }
+
   .project-grid {
     grid-template-columns:
       repeat(
@@ -1271,11 +1283,197 @@ body:has(.splash) {
    -------------------------------------------------------------------------- */
 
 main.project {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+  align-items: start;
+  gap: var(--project-column-gap);
+
   padding-top:
     calc(
       var(--nav-height) +
       var(--nav-content-gap)
     );
+}
+
+.project-information-panel {
+  position: sticky;
+  top: calc(var(--nav-height) + var(--nav-content-gap));
+  min-width: 0;
+  margin-inline-end: -1rem;
+}
+
+.project-information {
+  /* Reserve the main bottom padding and 58px-at-16px footer so the
+     sticky panel never hits its containing block's bottom edge. */
+  max-height: calc(100svh - var(--nav-height) - var(--nav-content-gap) - clamp(1.5rem, 6vw, 4rem) - 3.625rem - 3rem);
+  min-width: 0;
+  overflow-y: auto;
+  overscroll-behavior-y: none;
+  padding-inline-end: 2rem;
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+}
+
+@media (hover: hover) and (pointer: fine) and (min-width: 1000px) {
+  .project-information.is-text-scrollable {
+    cursor: ns-resize;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  .project-information.is-text-scrollable a {
+    cursor: pointer;
+  }
+
+  .project-information.is-text-dragging {
+    cursor: grabbing;
+  }
+}
+
+.project-information::-webkit-scrollbar {
+  width: 6px;
+}
+
+.project-information::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.project-information::-webkit-scrollbar-thumb {
+  background: transparent;
+  border-radius: 3px;
+}
+
+.project-text-scrollbar {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 6px;
+  border-radius: 3px;
+  background: rgba(107, 107, 100, 0.1);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+
+.project-text-scrollbar span {
+  display: block;
+  width: 100%;
+  border-radius: inherit;
+  background: var(--ink-soft);
+}
+
+.project-information:hover ~ .project-text-scrollbar,
+.project-information:focus-visible ~ .project-text-scrollbar,
+.project-information.is-text-dragging ~ .project-text-scrollbar {
+  opacity: 1;
+}
+
+.project-text-scrollbar[hidden] {
+  display: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .project-text-scrollbar {
+    transition: none;
+  }
+}
+
+.project-text-scroll {
+  position: fixed;
+  left: var(--project-text-control-x, 50%);
+  bottom: var(--scroll-control-bottom);
+  z-index: 40;
+  display: grid;
+  place-items: center;
+  width: var(--nav-search-height);
+  height: var(--nav-search-height);
+  margin: 0;
+  padding: 0;
+  transform: translateX(-50%);
+  border: 1px solid var(--ink-soft);
+  border-radius: 50%;
+  background: #fff;
+  color: var(--ink-soft);
+  font: 0.9rem/1 var(--font-mono);
+  cursor: pointer;
+  transition: color 0.2s ease, border-color 0.2s ease;
+}
+
+.project-text-scroll[hidden] {
+  display: none;
+}
+
+.project-information:focus-visible {
+  outline: 1px solid var(--nav-hover);
+  outline-offset: 5px;
+}
+
+.project-information.is-text-dragging:focus-visible {
+  outline: none;
+}
+
+.project-media,
+.project-lead-media,
+.project-gallery {
+  display: grid;
+  gap: var(--image-gap);
+  min-width: 0;
+}
+
+.project-media .project-image {
+  margin: 0;
+}
+
+.project-media .project-image img {
+  height: auto;
+  max-height: none;
+  object-fit: contain;
+}
+
+@media (max-width: 999px) {
+  .project-information-panel {
+    display: contents;
+  }
+
+  .project-text-scroll {
+    display: none;
+  }
+
+  main.project {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 2rem;
+  }
+
+  .project-information {
+    position: static;
+    max-height: none;
+    overflow: visible;
+    overscroll-behavior-y: auto;
+    margin-inline-end: 0;
+    padding-inline-end: 0;
+    scrollbar-gutter: auto;
+    order: 1;
+  }
+
+  /* Flatten the media groups so the opening image can precede the text
+     without duplicating images or interrupting the desktop media column. */
+  .project-media,
+  .project-lead-media {
+    display: contents;
+  }
+
+  .project-lead-media > .project-image {
+    order: 2;
+  }
+
+  .project-lead-media > .project-image:first-child {
+    order: 0;
+  }
+
+  .project-gallery {
+    order: 3;
+  }
 }
 
 .project-image {
@@ -1319,145 +1517,6 @@ main.project {
 }
 
 /* --------------------------------------------------------------------------
-   Project title images
-   -------------------------------------------------------------------------- */
-
-.project-title-images {
-  display: flex;
-  align-items: flex-start;
-  justify-content: center;
-
-  gap: var(--image-gap);
-
-  margin:
-    0
-    0
-    var(--content-gap);
-}
-
-.project-title-images
-.project-image {
-  flex: 0 1 auto;
-
-  width: auto;
-  height: auto;
-
-  max-height:
-    var(--title-image-max-height);
-
-  margin: 0;
-  overflow: hidden;
-
-  aspect-ratio: 3 / 4;
-}
-
-.project-title-images
-.project-image img {
-  width: 100%;
-  height: 100%;
-
-  object-fit: cover;
-}
-
-/* Paired title images display only
-   their first image in portrait mode. */
-
-@media (orientation: portrait) {
-  .project-title-images:not(
-    .project-title-images--single
-  )
-  .project-image:nth-child(2) {
-    display: none;
-  }
-}
-
-/* Single title image. */
-
-.project-title-images--single {
-  display: block;
-
-  margin:
-    0
-    0
-    var(--content-gap);
-}
-
-.project-title-images--single
-.project-image {
-  max-height: none;
-  overflow: visible;
-
-  aspect-ratio: auto;
-}
-
-.project-title-images--single
-.project-image img {
-  height: auto;
-  object-fit: initial;
-}
-
-/* Desktop and landscape title image. */
-
-@media (orientation: landscape) {
-  .project-title-images--single
-  .project-image {
-    width: 100%;
-
-    height:
-      min(
-        75svh,
-        60rem
-      );
-
-    max-height:
-      min(
-        75svh,
-        60rem
-      );
-
-    overflow: hidden;
-  }
-
-  .project-title-images--single
-  .project-image img {
-    width: 100%;
-    height: 100%;
-    max-height: none;
-
-    object-fit: cover;
-    object-position: center;
-  }
-}
-
-/* Consistent first title-image
-   height on phones. */
-
-@media (max-width: 700px) {
-  .project-title-images
-  > .project-image:first-child {
-    flex: 0 0 100%;
-
-    width: 100%;
-    height: 58svh;
-    max-height: none;
-
-    overflow: hidden;
-    aspect-ratio: auto;
-  }
-
-  .project-title-images
-  > .project-image:first-child
-  img {
-    width: 100%;
-    height: 100%;
-    max-height: none;
-
-    object-fit: cover;
-    object-position: center;
-  }
-}
-
-/* --------------------------------------------------------------------------
    Project information
    -------------------------------------------------------------------------- */
 
@@ -1467,7 +1526,7 @@ main.project {
     0
     var(--content-gap-lg);
 
-  text-align: center;
+  text-align: left;
 }
 
 .project-title-line {
@@ -1478,10 +1537,21 @@ main.project {
 
   font-family: var(--font-sans);
   font-size: var(--step-1);
+  font-weight: 600;
+  line-height: 1.3;
 }
 
 .project-title-line strong {
   font-weight: 600;
+}
+
+.project-subtitle {
+  display: block;
+  font-weight: 400;
+  margin: 0.35rem 0 0.75rem;
+  font-family: var(--font-sans);
+  font-size: 0.9rem;
+  line-height: 1.5;
 }
 
 .project-client-line {
@@ -1497,9 +1567,9 @@ main.project {
   display: grid;
 
   grid-template-columns:
-    1fr 1fr;
+    minmax(0, 1fr);
 
-  gap: 3rem;
+  gap: 1.5rem;
 
   margin-bottom:
     var(--content-gap-lg);
@@ -1529,8 +1599,8 @@ main.project {
   color: var(--ink);
 
   font-family: var(--font-sans);
-  font-size: 1rem;
-  line-height: 1.7;
+  font-size: 0.9rem;
+  line-height: 1.65;
 }
 
 /* --------------------------------------------------------------------------
@@ -1581,7 +1651,7 @@ main.project {
   padding: 0;
 
   font-family: var(--font-sans);
-  font-size: 1rem;
+  font-size: 0.85rem;
   line-height: 1.8;
 
   list-style: none;
@@ -1593,6 +1663,94 @@ main.project {
 
 .project-facts strong {
   font-weight: 600;
+}
+
+/* Preserve the released v0.4 project layout on phones. */
+@media (max-width: 700px) {
+  main.project {
+    gap: 0;
+  }
+
+  .project-lead-media {
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    order: 0;
+    margin-bottom: var(--content-gap);
+  }
+
+  .project-lead-media--single {
+    display: block;
+  }
+
+  .project-lead-media > .project-image {
+    flex: 0 1 auto;
+    width: auto;
+    height: auto;
+    max-height: var(--title-image-max-height);
+    overflow: hidden;
+    aspect-ratio: 3 / 4;
+  }
+
+  .project-lead-media > .project-image:first-child {
+    flex: 0 0 100%;
+    width: 100%;
+    height: 58svh;
+    max-height: none;
+    aspect-ratio: auto;
+  }
+
+  .project-lead-media .project-image img {
+    width: 100%;
+    height: 100%;
+    max-height: none;
+    object-fit: cover;
+    object-position: center;
+  }
+
+  .project-header {
+    text-align: center;
+  }
+
+  .project-title-line {
+    font-weight: 400;
+    line-height: 1.5;
+    letter-spacing: normal;
+  }
+
+  .project-title-line strong {
+    font-weight: 600;
+  }
+
+  .project-subtitle {
+    display: inline;
+    margin: 0;
+    font-size: inherit;
+    line-height: inherit;
+  }
+
+  .project-col p {
+    font-size: 1rem;
+    line-height: 1.7;
+  }
+
+  .project-facts {
+    font-size: 1rem;
+  }
+
+  .project-gallery {
+    display: block;
+  }
+
+  .project-gallery .project-image {
+    margin: 0 0 var(--image-gap);
+  }
+}
+
+@media (max-width: 700px) and (orientation: portrait) {
+  .project-lead-media:not(.project-lead-media--single) > .project-image:nth-child(2) {
+    display: none;
+  }
 }
 
 /* --------------------------------------------------------------------------
@@ -1610,33 +1768,25 @@ main.project {
   left: auto;
 
   bottom:
-    clamp(
-      1.25rem,
-      3vw,
-      2rem
-    );
+    var(--scroll-control-bottom);
 
   z-index: 40;
 
   display: grid;
-  width: 2.75rem;
-  height: 2.75rem;
+  width: var(--nav-search-height);
+  height: var(--nav-search-height);
   padding: 0;
 
-  border: 1px solid var(--ink);
+  border: 1px solid var(--ink-soft);
   border-radius: 50%;
 
   background: #fff;
-  color: var(--ink);
+  color: var(--ink-soft);
 
   font-family: var(--font-mono);
-  font-size: 1.25rem;
+  font-size: 0.9rem;
   line-height: 1;
   place-items: center;
-
-  box-shadow:
-    0 0.35rem 1rem
-    rgba(0, 0, 0, 0.16);
 
   cursor: pointer;
 
@@ -1646,8 +1796,8 @@ main.project {
 
   transform:
     translate(
-      0,
-      0.5rem
+      var(--back-to-top-x, 0),
+      0
     );
 
   transition:
@@ -1666,19 +1816,33 @@ main.project {
 
   transform:
     translate(
-      0,
+      var(--back-to-top-x, 0),
       0
     );
 }
 
-.back-to-top:hover,
-.back-to-top:focus-visible {
-  background: var(--ink);
-  color: #fff;
+body:has(main.project) .back-to-top {
+  --back-to-top-x: -50%;
+  left: var(--project-media-control-x, 50%);
+  right: auto;
+}
+
+body.is-page-leaving .site-footer,
+body.is-page-leaving .back-to-top,
+body.is-page-leaving .project-text-scroll {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.7s ease;
 }
 
 @media (prefers-reduced-motion: reduce) {
   .back-to-top {
+    transition: none;
+  }
+
+  body.is-page-leaving .site-footer,
+  body.is-page-leaving .back-to-top,
+  body.is-page-leaving .project-text-scroll {
     transition: none;
   }
 }

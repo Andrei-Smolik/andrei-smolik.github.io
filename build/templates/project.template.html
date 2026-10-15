@@ -49,98 +49,93 @@
 
     <main class="project">
 
-      <!-- IF:TITLE_IMAGE_SINGLE -->
-      <div class="project-title-images project-title-images--single">
+      <div class="project-information-panel">
+      <div class="project-information" id="projectInformation" tabindex="0" role="region" aria-label="Project information">
+        <div class="project-header">
+          <h1 class="project-title-line">
+            <strong>{{TITLE}}</strong>
+            <span class="project-subtitle">{{SUBTITLE}}<!-- IF:YEAR -->, {{YEAR}}<!-- END:YEAR --></span>
+          </h1>
+
+<!-- IF:CLIENT -->
+          <p class="project-client-line">Commissioned by {{CLIENT}}</p>
+<!-- END:CLIENT -->
+        </div>
+
+        <div class="project-columns{{PROJECT_COLUMNS_CLASS}}">
+<!-- IF:DESCRIPTION -->
+          <div class="project-col">
+<!-- EACH:DESCRIPTION_PARAGRAPH -->
+            <p>{{PARAGRAPH_TEXT}}</p>
+<!-- END:DESCRIPTION_PARAGRAPH -->
+          </div>
+<!-- END:DESCRIPTION -->
+
+<!-- IF:FACTS -->
+          <div class="project-col">
+            <ul class="project-facts">
+<!-- EACH:FACT -->
+              <li><strong>{{FACT_LABEL}}:</strong> {{FACT_VALUE}}</li>
+<!-- END:FACT -->
+            </ul>
+          </div>
+<!-- END:FACTS -->
+        </div>
+      </div>
+
+      </div>
+
+      <div class="project-media">
+<!-- IF:TITLE_IMAGE_SINGLE -->
+      <div class="project-lead-media project-lead-media--single">
         <figure class="project-image fade-in">
           <img
             src="{{TITLE_IMAGE_SRC}}"
             srcset="{{TITLE_IMAGE_SRCSET}}"
-            sizes="100vw"
+            sizes="(min-width: 1000px) 43vw, 80vw"
             alt=""
             decoding="async"
           />
         </figure>
       </div>
-      <!-- END:TITLE_IMAGE_SINGLE -->
+<!-- END:TITLE_IMAGE_SINGLE -->
 
-      <!-- IF:TITLE_IMAGE_PAIR -->
-      <div class="project-title-images">
+<!-- IF:TITLE_IMAGE_PAIR -->
+      <div class="project-lead-media">
 
-        <!-- EACH:TITLE_IMAGE -->
+<!-- EACH:TITLE_IMAGE -->
         <figure class="project-image fade-in">
           <img
             src="{{TITLE_IMAGE_SRC}}"
             srcset="{{TITLE_IMAGE_SRCSET}}"
-            sizes="(min-width: 700px) 50vw, 100vw"
+            sizes="(min-width: 1000px) 43vw, 80vw"
             alt=""
             decoding="async"
           />
         </figure>
-        <!-- END:TITLE_IMAGE -->
+<!-- END:TITLE_IMAGE -->
 
       </div>
-      <!-- END:TITLE_IMAGE_PAIR -->
-
-      <div class="project-header">
-        <p class="project-title-line">
-          <strong>{{TITLE}}</strong>
-          {{SUBTITLE}}<!-- IF:YEAR -->, {{YEAR}}<!-- END:YEAR -->
-        </p>
-
-        <!-- IF:CLIENT -->
-        <p class="project-client-line">
-          Commissioned by {{CLIENT}}
-        </p>
-        <!-- END:CLIENT -->
-      </div>
-
-      <div class="project-columns{{PROJECT_COLUMNS_CLASS}}">
-
-        <!-- IF:DESCRIPTION -->
-        <div class="project-col">
-
-          <!-- EACH:DESCRIPTION_PARAGRAPH -->
-          <p>{{PARAGRAPH_TEXT}}</p>
-          <!-- END:DESCRIPTION_PARAGRAPH -->
-
-        </div>
-        <!-- END:DESCRIPTION -->
-
-        <!-- IF:FACTS -->
-        <div class="project-col">
-          <ul class="project-facts">
-
-            <!-- EACH:FACT -->
-            <li>
-              <strong>{{FACT_LABEL}}:</strong>
-              {{FACT_VALUE}}
-            </li>
-            <!-- END:FACT -->
-
-          </ul>
-        </div>
-        <!-- END:FACTS -->
-
-      </div>
+<!-- END:TITLE_IMAGE_PAIR -->
 
       <div class="project-gallery">
 
-        <!-- EACH:GALLERY_MEDIA -->
+<!-- EACH:GALLERY_MEDIA -->
 
-        <!-- IF:GALLERY_IMAGE_ITEM -->
+<!-- IF:GALLERY_IMAGE_ITEM -->
         <figure class="project-image fade-in">
           <img
             src="{{GALLERY_IMAGE_SRC}}"
             srcset="{{GALLERY_IMAGE_SRCSET}}"
-            sizes="100vw"
+            sizes="(min-width: 1000px) 43vw, 80vw"
             alt=""
             loading="lazy"
             decoding="async"
           />
         </figure>
-        <!-- END:GALLERY_IMAGE_ITEM -->
+<!-- END:GALLERY_IMAGE_ITEM -->
 
-        <!-- IF:GALLERY_VIDEO_ITEM -->
+<!-- IF:GALLERY_VIDEO_ITEM -->
         <figure class="project-image project-video fade-in">
           <video
             autoplay
@@ -157,10 +152,11 @@
             Your browser does not support embedded video.
           </video>
         </figure>
-        <!-- END:GALLERY_VIDEO_ITEM -->
+<!-- END:GALLERY_VIDEO_ITEM -->
 
-        <!-- END:GALLERY_MEDIA -->
+<!-- END:GALLERY_MEDIA -->
 
+      </div>
       </div>
 
     </main>

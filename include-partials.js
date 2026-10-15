@@ -740,6 +740,15 @@ const PAGE_EXIT_DURATION_MS =
   700;
 
 function initPageExitTransition() {
+  // Safari can restore the outgoing page from its back-forward cache.
+  window.addEventListener('pageshow', (event) => {
+    if (!event.persisted) return;
+    document.body.classList.remove('is-page-leaving');
+    document.querySelectorAll('.page-leaving').forEach(element => {
+      element.classList.remove('page-leaving');
+    });
+  });
+
   const navigation =
     document.querySelector(
       '.site-nav'
@@ -808,6 +817,8 @@ function initPageExitTransition() {
       }
 
       event.preventDefault();
+
+      document.body.classList.add('is-page-leaving');
 
       navigation?.classList.add(
         'page-leaving'
@@ -900,6 +911,22 @@ function initNavHeightSync() {
 
   document.fonts.ready.then(syncHeight);
   new ResizeObserver(syncHeight).observe(navigation);
+}
+
+// Fixed navigation must use the same usable width as the scrolling content.
+// Classic Windows scrollbars occupy space; macOS overlay scrollbars do not.
+function initPageScrollbarSync() {
+  const scroller = document.getElementById('pageScroll');
+  if (!scroller) return;
+  const sync = () => {
+    document.documentElement.style.setProperty(
+      '--page-scrollbar-width',
+      `${scroller.offsetWidth - scroller.clientWidth}px`
+    );
+  };
+  sync();
+  new ResizeObserver(sync).observe(scroller);
+  window.addEventListener('resize', sync);
 }
 
 /* --------------------------------------------------------------------------
@@ -1329,6 +1356,126 @@ function initBackToTop() {
    Initialise
    -------------------------------------------------------------------------- */
 
+function initProjectTextScroll() {
+  const panel = document.getElementById('projectInformation');
+  if (!panel) return;
+
+  // Both controls live directly under body, outside the scrolling content.
+  // Create the text control here rather than in individual generated pages.
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.className = 'project-text-scroll';
+  button.hidden = true;
+  button.setAttribute('aria-controls', panel.id);
+  const icon = document.createElement('span');
+  icon.setAttribute('aria-hidden', 'true');
+  button.append(icon);
+  document.body.append(button);
+
+  // A visual thumb gives Safari a reliable opacity fade, independent of
+  // the OS's auto-hiding scrollbar setting. Native scrolling stays intact.
+  const scrollbar = document.createElement('div');
+  scrollbar.className = 'project-text-scrollbar';
+  scrollbar.setAttribute('aria-hidden', 'true');
+  const thumb = document.createElement('span');
+  scrollbar.append(thumb);
+  panel.parentElement.append(scrollbar);
+
+  const desktop = window.matchMedia('(min-width: 1000px)');
+  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+  const textColumn = panel.querySelector('.project-header');
+  const mediaColumn = document.querySelector('.project-media');
+  const gallery = document.querySelector('.project-gallery');
+  const atBottom = () => panel.scrollHeight - panel.clientHeight - panel.scrollTop <= 2;
+
+  function update() {
+    // Measure the rendered columns: viewport formulas can drift when a
+    // browser reserves space for scrollbars or the layout changes size.
+    const textRect = textColumn.getBoundingClientRect();
+    const mediaRect = (desktop.matches ? mediaColumn : gallery).getBoundingClientRect();
+    document.documentElement.style.setProperty('--project-text-control-x', `${textRect.left + textRect.width / 2}px`);
+    document.documentElement.style.setProperty('--project-media-control-x', `${mediaRect.left + mediaRect.width / 2}px`);
+    const scrollable = desktop.matches && panel.scrollHeight > panel.clientHeight + 2;
+    button.hidden = !scrollable;
+    scrollbar.hidden = !scrollable;
+    if (scrollable) {
+      const trackHeight = panel.clientHeight;
+      const thumbHeight = Math.max(24, trackHeight * trackHeight / panel.scrollHeight);
+      const progress = Math.max(0, Math.min(1, panel.scrollTop / (panel.scrollHeight - trackHeight)));
+      scrollbar.style.height = `${trackHeight}px`;
+      thumb.style.height = `${thumbHeight}px`;
+      thumb.style.transform = `translateY(${progress * (trackHeight - thumbHeight)}px)`;
+    }
+    panel.classList.toggle('is-text-scrollable', scrollable);
+    const label = atBottom() ? 'Scroll to top of project text' : 'Scroll to bottom of project text';
+    icon.textContent = atBottom() ? '↑' : '↓';
+    button.setAttribute('aria-label', label);
+    button.title = label;
+  }
+
+  button.addEventListener('click', () => {
+    panel.scrollTo({
+      top: atBottom() ? 0 : panel.scrollHeight,
+      behavior: reducedMotion.matches ? 'auto' : 'smooth',
+    });
+  });
+  panel.addEventListener('scroll', update, { passive: true });
+  desktop.addEventListener('change', update);
+  window.addEventListener('resize', update);
+  const observer = new ResizeObserver(update);
+  observer.observe(panel);
+  observer.observe(mediaColumn);
+  observer.observe(gallery);
+  panel.querySelectorAll('.project-header, .project-columns').forEach(element => observer.observe(element));
+  document.fonts.ready.then(update);
+  update();
+  initProjectTextDrag(panel, desktop);
+}
+
+function initProjectTextDrag(panel, desktop) {
+  let drag = null;
+
+  function endDrag() {
+    if (!drag) return;
+    const pointerId = drag.pointerId;
+    drag = null;
+    panel.classList.remove('is-text-dragging');
+    if (panel.hasPointerCapture(pointerId)) panel.releasePointerCapture(pointerId);
+  }
+
+  panel.addEventListener('pointerdown', event => {
+    if (!desktop.matches || !panel.classList.contains('is-text-scrollable') ||
+        event.pointerType !== 'mouse' || event.button !== 0 || !event.isPrimary ||
+        event.target.closest('a, button, input, textarea, select, [contenteditable]')) return;
+
+    // Leave the native scrollbar available for normal thumb dragging.
+    const bounds = panel.getBoundingClientRect();
+    if (event.clientX >= bounds.left + panel.clientLeft + panel.clientWidth) return;
+
+    event.preventDefault();
+    panel.scrollTo({ top: panel.scrollTop, behavior: 'instant' });
+    drag = { pointerId: event.pointerId, startY: event.clientY, startScroll: panel.scrollTop };
+    panel.setPointerCapture(event.pointerId);
+    panel.classList.add('is-text-dragging');
+  });
+
+  panel.addEventListener('pointermove', event => {
+    if (!drag || event.pointerId !== drag.pointerId) return;
+    if (!desktop.matches || !(event.buttons & 1)) {
+      endDrag();
+      return;
+    }
+    event.preventDefault();
+    panel.scrollTop = drag.startScroll + drag.startY - event.clientY;
+  });
+
+  panel.addEventListener('pointerup', endDrag);
+  panel.addEventListener('pointercancel', endDrag);
+  panel.addEventListener('lostpointercapture', endDrag);
+  window.addEventListener('blur', endDrag);
+  desktop.addEventListener('change', endDrag);
+}
+
 includePartials()
   .then(async () => {
     initNavSearch();
@@ -1342,6 +1489,7 @@ includePartials()
     initPageEntrance();
     initPageExitTransition();
     initNavHeightSync();
+    initPageScrollbarSync();
 
     resetIndexScrollOnProjectReturn();
     initScrollFadeIn();
@@ -1349,6 +1497,7 @@ includePartials()
     initProjectVideos();
 
     initBackToTop();
+    initProjectTextScroll();
   })
   .catch((error) => {
     console.error(
