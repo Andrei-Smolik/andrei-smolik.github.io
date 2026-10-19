@@ -566,42 +566,62 @@ a:not(.site-nav__name) {
 
 /* Reserve space for search alongside the mobile links, without overlap. */
 @media (max-width: 700px) {
+  :root {
+    --nav-content-gap: 1rem;
+    --nav-outer-gap: 0.675rem;
+  }
+
   .site-nav {
-    --nav-name-links-gap: 0.65rem;
+    --nav-name-links-gap: 0.325rem;
+  }
+
+  .site-nav__name {
+    padding: 0.075em 0.2em;
   }
 
   .site-nav__links {
     flex-wrap: nowrap;
-    gap: 0.4rem;
+    gap: 0.2rem;
   }
 
   .site-nav__primary {
     justify-content: center;
     flex-wrap: nowrap;
-    gap: clamp(0.15rem, 1vw, 0.4rem);
+    gap: clamp(0.075rem, 0.5vw, 0.2rem);
     max-width: 100%;
   }
 
   .site-nav__link {
     font-size: 0.8rem;
-    padding-inline: 0.3em;
+    padding: 0.1em 0.15em;
   }
 
   .site-nav__search-group {
-    position: relative;
+    position: fixed;
     top: auto;
-    transform: none;
-    flex: 0 0 auto;
+    right: auto;
+    bottom: calc(var(--scroll-control-bottom) + var(--search-keyboard-inset, 0px));
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 40;
+  }
+
+  .site-nav__search {
+    width: var(--nav-search-height);
+    height: var(--nav-search-height);
+    background: var(--paper);
   }
 
   .site-nav__links.is-searching {
-    grid-template-rows: auto auto;
-    row-gap: 0.65rem;
+    display: flex;
   }
 
   .site-nav__links.is-searching .site-nav__search-group {
-    justify-self: center;
-    max-width: 100%;
+    position: fixed;
+    top: auto;
+    transform: translateX(-50%);
+    max-width: 80vw;
+    min-height: 0;
   }
 
   .site-nav__links.is-searching .site-nav__search {
@@ -1264,6 +1284,7 @@ body:has(.splash) {
 @media (max-width: 700px) {
   .project-card {
     touch-action: manipulation;
+    border: 0;
 
     -webkit-tap-highlight-color:
       transparent;
@@ -1949,11 +1970,14 @@ main.project {
   background: transparent;
 }
 
-.splash__cta:hover,
+@media (max-width: 700px) {
+  .site-nav__search-label {
+    border-color: #000;
+  }
+}
+
 .splash__cta:focus-visible,
-.back-to-top:hover,
 .back-to-top:focus-visible,
-.project-text-scroll:hover,
 .project-text-scroll:focus-visible,
 .site-nav__search-label:focus-visible,
 .site-nav__search-close:focus-visible {
@@ -1965,11 +1989,36 @@ main.project {
 /* Touch browsers can retain :hover after a tap. Search hover fill is only
    for a real hovering pointer; keyboard focus keeps its visible feedback. */
 @media (hover: hover) and (pointer: fine) {
+  .splash__cta:hover,
+  .back-to-top:hover,
+  .project-text-scroll:hover,
   .site-nav__search-label:hover,
   .site-nav__search-close:hover {
     background: #000;
     border-color: transparent;
     color: #fff;
+  }
+}
+
+/* Keep the visible circles unchanged, but make arrows easier to tap without
+   enabling double-tap zoom or sticky simulated hover on touch devices. */
+.splash__cta,
+.back-to-top,
+.project-text-scroll {
+  touch-action: manipulation;
+}
+
+@media (pointer: coarse) {
+  .splash__cta::before,
+  .back-to-top::before,
+  .project-text-scroll::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: max(44px, 100%);
+    height: max(44px, 100%);
+    transform: translate(-50%, -50%);
   }
 }
 

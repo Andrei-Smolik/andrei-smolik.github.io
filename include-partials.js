@@ -1097,6 +1097,8 @@ function initBackToTop() {
       REDUCED_MOTION_QUERY
     ).matches;
 
+  let returningToTop = false;
+
   function getScrollPosition() {
     const target = getMediaScrollTarget();
     return target
@@ -1105,15 +1107,16 @@ function initBackToTop() {
   }
 
   function updateButton() {
+    const position = getScrollPosition();
+    if (position <= 1) returningToTop = false;
     const revealDistance =
       Math.max(
         window.innerHeight,
         700
       );
 
-    const visible =
-      getScrollPosition() >
-      revealDistance;
+    // Do not hide the activated/focused control halfway through its scroll.
+    const visible = returningToTop || position > revealDistance;
 
     button.classList.toggle(
       'is-visible',
@@ -1136,6 +1139,7 @@ function initBackToTop() {
   button.addEventListener(
     'click',
     () => {
+      returningToTop = getScrollPosition() > 1;
       (getMediaScrollTarget() || window).scrollTo({
         top: 0,
 
@@ -1412,9 +1416,27 @@ function initProjectTextDrag(panel, desktop) {
   desktop.addEventListener('change', endDrag);
 }
 
+function initSearchViewportSync() {
+  const viewport = window.visualViewport;
+  const input = document.getElementById('siteNavSearchInput');
+  const group = input?.closest('.site-nav__search-group');
+  if (!viewport || !group) return;
+  const update = () => {
+    const inset = document.activeElement === input
+      ? Math.max(0, window.innerHeight - viewport.height - viewport.offsetTop) : 0;
+    group.style.setProperty('--search-keyboard-inset', `${inset}px`);
+  };
+  viewport.addEventListener('resize', update);
+  viewport.addEventListener('scroll', update);
+  input.addEventListener('focus', update);
+  input.addEventListener('blur', update);
+  update();
+}
+
 async function initSite() {
   await includePartials();
   initNavSearch();
+  initSearchViewportSync();
 
   await initContactLinks();
 

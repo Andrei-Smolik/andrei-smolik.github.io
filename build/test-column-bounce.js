@@ -94,6 +94,10 @@ for (const project of [true, false]) {
   assert.equal(target.lastScroll.top, 0);
   assert.equal(target.lastScroll.behavior, 'smooth');
   if (project) assert.equal(page.lastScroll, undefined);
+  scroll(target, 300);
+  assert(button.classList.contains('is-visible'), 'keep the control visible during the return');
+  scroll(target, 0);
+  assert(!button.classList.contains('is-visible'), 'hide only when the return reaches the top');
 
   desktop.matches = false;
   desktop.handlers.forEach(handler => handler());
@@ -101,6 +105,12 @@ for (const project of [true, false]) {
   assert.equal(vm.runInContext('getMediaScrollTarget()', context), page);
   assert.equal(page.classList.contains('native-project-columns'), false);
   scroll(page, 1000);
+  button.handlers.click[0].handler();
+  assert.equal(page.lastScroll.top, 0, 'phone arrow scrolls the page, not the desktop media column');
+  scroll(page, 300);
+  assert(button.classList.contains('is-visible'));
+  scroll(page, 0);
+  assert(!button.classList.contains('is-visible'));
   scroll(page, 1070);
   assert.equal(footer.style['--footer-offset'], '0px');
   // Empty results / short pages keep the footer at the viewport bottom.
