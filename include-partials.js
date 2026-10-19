@@ -1234,6 +1234,18 @@ function initNativeScrollLayout() {
   updateLayout();
 }
 
+function getMobileTextFade(rect, viewportTop, viewportBottom) {
+  const height = Math.max(0, rect.bottom - rect.top);
+  const top = Math.min(height, Math.max(0, viewportTop - rect.top));
+  const bottom = Math.max(top, Math.min(height, viewportBottom - rect.top));
+  const fade = (bottom - top) * 0.08;
+  return {
+    top, bottom,
+    fadeTop: Math.min(fade, top),
+    fadeBottom: Math.min(fade, height - bottom),
+  };
+}
+
 function initProjectTextScroll() {
   const panel = document.getElementById('projectInformation');
   if (!panel) return;
@@ -1265,6 +1277,8 @@ function initProjectTextScroll() {
   const textColumn = panel.querySelector('.project-header');
   const mediaColumn = document.querySelector('.project-media');
   const gallery = document.querySelector('.project-gallery');
+  const page = document.getElementById('pageScroll');
+  const navigation = document.querySelector('.site-nav');
   const atBottom = () => panel.scrollHeight - panel.clientHeight - panel.scrollTop <= 2;
 
   function updatePositions() {
@@ -1297,6 +1311,16 @@ function initProjectTextScroll() {
     panel.classList.toggle('has-more-text', scrollable && !bottom);
     panel.style.setProperty('--text-overflow-above', `${scrollTop <= 1 ? 0 : scrollTop}px`);
     panel.style.setProperty('--text-overflow-remaining', `${bottom ? 0 : scrollHeight - trackHeight - scrollTop}px`);
+    if (!desktop.matches) {
+      const viewport = window.visualViewport;
+      const viewportTop = Math.max(navigation.getBoundingClientRect().bottom, viewport?.offsetTop || 0);
+      const viewportBottom = viewport ? viewport.offsetTop + viewport.height : window.innerHeight;
+      const fade = getMobileTextFade(panel.getBoundingClientRect(), viewportTop, viewportBottom);
+      for (const [property, value] of Object.entries({
+        top: fade.top, bottom: fade.bottom,
+        'fade-top': fade.fadeTop, 'fade-bottom': fade.fadeBottom,
+      })) panel.style.setProperty(`--mobile-text-${property}`, `${value}px`);
+    }
     const label = bottom ? 'Scroll to top of project text' : 'Scroll to bottom of project text';
     if (button.getAttribute('aria-label') !== label) {
       icon.querySelector('path').setAttribute('d', bottom
@@ -1327,6 +1351,9 @@ function initProjectTextScroll() {
     });
   });
   panel.addEventListener('scroll', () => scheduleUpdate(), { passive: true });
+  page?.addEventListener('scroll', () => { if (!desktop.matches) scheduleUpdate(); }, { passive: true });
+  window.visualViewport?.addEventListener('resize', () => scheduleUpdate());
+  window.visualViewport?.addEventListener('scroll', () => scheduleUpdate());
   desktop.addEventListener('change', () => scheduleUpdate(true));
   window.addEventListener('resize', () => scheduleUpdate(true));
   const observer = new ResizeObserver(() => scheduleUpdate(true));
@@ -1434,7 +1461,7 @@ if (typeof module === 'object' && module.exports) {
   module.exports = {
     parseIni, isIndexPage, initNavSearch, initProjectSearch, markCurrentNavLink,
     getMediaScrollTarget, initNativeScrollLayout, initBackToTop,
-    initSplashScrollTrigger, initProjectTextDrag, initProjectVideos, initVideoAutoplay, initSplashVideo,
+    initSplashScrollTrigger, initProjectTextDrag, initProjectVideos, initVideoAutoplay, initSplashVideo, getMobileTextFade,
   };
 } else {
   initSite().catch(handleInitialisationError);

@@ -2,6 +2,25 @@ const assert = require('node:assert/strict');
 const test = require('node:test');
 const { loadRuntime, element } = require('./helpers');
 
+test('mobile text fades only at obscured viewport edges, capped at eight percent', () => {
+  const { getMobileTextFade } = loadRuntime();
+  const top = getMobileTextFade({ top: 150, bottom: 1150 }, 150, 750);
+  assert.equal(top.fadeTop, 0);
+  assert.equal(top.fadeBottom, 48);
+  const middle = getMobileTextFade({ top: -100, bottom: 900 }, 150, 750);
+  assert.equal(middle.fadeTop, 48);
+  assert.equal(middle.fadeBottom, 48);
+  const bottom = getMobileTextFade({ top: -300, bottom: 700 }, 150, 750);
+  assert.equal(bottom.fadeTop, 44);
+  assert.equal(bottom.fadeBottom, 0);
+  for (const rect of [{ top: 200, bottom: 400 }, { top: 800, bottom: 1800 }, { top: -1000, bottom: 0 }]) {
+    const fade = getMobileTextFade(rect, 150, 750);
+    assert.equal(fade.fadeTop, 0);
+    assert.equal(fade.fadeBottom, 0);
+    assert(fade.bottom >= fade.top);
+  }
+});
+
 function searchFixture() {
   const document = { activeElement: null };
   const nodes = Object.fromEntries(['siteNavLinks', 'siteNavSearchToggle', 'siteNavSearchInput', 'siteNavSearchClose']

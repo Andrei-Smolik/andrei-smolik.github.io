@@ -564,23 +564,27 @@ a:not(.site-nav__name) {
    Page layout
    -------------------------------------------------------------------------- */
 
-/* On phones, reserve actual layout space for search rather than floating it
-   over Contact. Wrap to another row when the links and button cannot fit. */
+/* Reserve space for search alongside the mobile links, without overlap. */
 @media (max-width: 700px) {
   .site-nav {
     --nav-name-links-gap: 0.65rem;
   }
 
   .site-nav__links {
-    flex-wrap: wrap;
-    gap: 0.65rem 0.75rem;
+    flex-wrap: nowrap;
+    gap: 0.4rem;
   }
 
   .site-nav__primary {
     justify-content: center;
-    flex-wrap: wrap;
-    gap: 0.4rem;
+    flex-wrap: nowrap;
+    gap: clamp(0.15rem, 1vw, 0.4rem);
     max-width: 100%;
+  }
+
+  .site-nav__link {
+    font-size: 0.8rem;
+    padding-inline: 0.3em;
   }
 
   .site-nav__search-group {
@@ -1550,6 +1554,14 @@ main.project {
     padding-inline-end: 0;
     scrollbar-gutter: auto;
     order: 1;
+    /* Fade at the visible page edges, without adding a nested phone scroller. */
+    --mobile-text-mask: linear-gradient(to bottom,
+      transparent var(--mobile-text-top, 0px),
+      #000 calc(var(--mobile-text-top, 0px) + var(--mobile-text-fade-top, 0px)),
+      #000 calc(var(--mobile-text-bottom, 100%) - var(--mobile-text-fade-bottom, 0px)),
+      transparent var(--mobile-text-bottom, 100%));
+    -webkit-mask-image: var(--mobile-text-mask);
+    mask-image: var(--mobile-text-mask);
   }
 
   /* Flatten the media groups so the opening image can precede the text

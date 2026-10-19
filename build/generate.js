@@ -99,7 +99,7 @@ const OUTPUT_IMAGE_QUALITY = 82;
 const IMAGE_PIPELINE_REVISION = 2;
 const OUTPUT_VIDEO_MAX_WIDTH = 1920;
 const OUTPUT_VIDEO_CRF = 23;
-const OUTPUT_VIDEO_AUDIO_BITRATE = '128k';
+const VIDEO_OUTPUT_SUFFIX = '-silent-v1';
 const MISCELLANEOUS_FOLDER_NAME =
   'miscellaneous';
 
@@ -561,7 +561,7 @@ async function processVideo(
   const outputPath =
     path.join(
       outputDirectory,
-      `${basename}.mp4`
+      `${basename}${VIDEO_OUTPUT_SUFFIX}.mp4`
     );
 
   if (
@@ -587,6 +587,17 @@ async function processVideo(
     };
   }
 
+  // Reuse an up-to-date H.264 encode without another lossy conversion.
+  // New filenames also prevent Safari/CDN caches serving the old audio track.
+  const previousOutput = path.join(outputDirectory, `${basename}.mp4`);
+  if (outputIsCurrent(sourcePath, previousOutput)) {
+    await runFfmpeg([
+      '-y', '-i', previousOutput, '-map', '0:v:0', '-c:v', 'copy',
+      '-an', '-sn', '-map_metadata', '-1', '-movflags', '+faststart', outputPath,
+    ], path.basename(sourcePath));
+    return { basename, outputPath, cached: false, skipped: false };
+  }
+
   await runFfmpeg(
     [
       '-y',
@@ -594,8 +605,7 @@ async function processVideo(
       sourcePath,
       '-map',
       '0:v:0',
-      '-map',
-      '0:a?',
+      '-an',
       '-vf',
       `scale='min(${OUTPUT_VIDEO_MAX_WIDTH},iw)':-2`,
       '-c:v',
@@ -608,12 +618,6 @@ async function processVideo(
       'yuv420p',
       '-movflags',
       '+faststart',
-      '-c:a',
-      'aac',
-      '-b:a',
-      OUTPUT_VIDEO_AUDIO_BITRATE,
-      '-ac',
-      '2',
       '-sn',
       '-map_metadata',
       '-1',
@@ -1453,7 +1457,7 @@ function resolveSplashVideoSource(
     `${MISCELLANEOUS_FOLDER_NAME}/` +
     `${encodeURIComponent(
       outputBasename
-    )}.mp4`
+    )}${VIDEO_OUTPUT_SUFFIX}.mp4`
   );
 }
 
@@ -1796,7 +1800,7 @@ function makeVideoResolver(
     `${slug}/` +
     `${encodeURIComponent(
       basename
-    )}.mp4`;
+    )}${VIDEO_OUTPUT_SUFFIX}.mp4`;
 }
 
 function buildProjectPageData({
@@ -2866,6 +2870,7 @@ module.exports = {
   renderDescriptionText, renderIndexPage, renderProjectPage,
   resolveEach, resolveIf, fillTokens, stripComments,
   validateDescriptionProjectLinks, validateMarkdownFolderLinks,
+  processVideo, makeVideoResolver, resolveSplashVideoSource,
 };
 
 if (require.main === module) {

@@ -7,6 +7,39 @@ const test = require('node:test');
 const sharp = require('sharp');
 const { ROOT } = require('./helpers');
 const { resolveSitePath, assertSafeOutputPath } = require('../lib/config');
+const { processVideo, makeVideoResolver, resolveSplashVideoSource } = require('../generate');
+
+test('video pipeline produces cached, audio-free MP4s with matching fresh URLs', async t => {
+  if (spawnSync('ffmpeg', ['-version']).status !== 0 || spawnSync('ffprobe', ['-version']).status !== 0) {
+    t.skip('FFmpeg and ffprobe are required for the video integration test');
+    return;
+  }
+  const directory = temporaryDirectory(t);
+  const source = path.join(directory, 'clip.mp4');
+  const output = path.join(directory, 'output');
+  fs.mkdirSync(output);
+  const fixtureVideo = spawnSync('ffmpeg', ['-y', '-f', 'lavfi', '-i', 'color=size=32x32:rate=10',
+    '-f', 'lavfi', '-i', 'sine=frequency=440', '-t', '0.2', '-c:v', 'libx264', '-pix_fmt', 'yuv420p', '-c:a', 'aac', source]);
+  assert.equal(fixtureVideo.status, 0, fixtureVideo.stderr?.toString());
+  const original = fs.readFileSync(source);
+  for (const legacy of [false, true]) {
+    const target = path.join(output, legacy ? 'migration' : 'fresh');
+    fs.mkdirSync(target);
+    if (legacy) fs.copyFileSync(source, path.join(target, 'clip.mp4'));
+    const result = await processVideo(source, target);
+    assert.equal(result.cached, false);
+    const probe = spawnSync('ffprobe', ['-v', 'error', '-show_entries', 'stream=codec_type,codec_name,pix_fmt', '-of', 'json', result.outputPath], { encoding: 'utf8' });
+    const streams = JSON.parse(probe.stdout).streams;
+    assert.equal(streams.length, 1);
+    assert.equal(streams[0].codec_type, 'video');
+    assert.equal(streams[0].codec_name, 'h264');
+    assert.equal(streams[0].pix_fmt, 'yuv420p');
+    assert.equal((await processVideo(source, target)).cached, true);
+    assert(makeVideoResolver('images', 'sample')('clip').endsWith(path.basename(result.outputPath)));
+    assert(resolveSplashVideoSource('clip.mp4', 'images').endsWith(path.basename(result.outputPath)));
+  }
+  assert.deepEqual(fs.readFileSync(source), original);
+});
 
 // All writes and cleanup are confined to explicitly created temporary fixtures.
 // Real assemblies and generated website files are never changed by these tests.
