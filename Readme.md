@@ -1,241 +1,76 @@
-Andrei Smolik — Portfolio Website
+# Andrei Smolik — Portfolio
 
-A static portfolio website for Andrei Smolik’s work across public art, architecture, computational design, and digital fabrication.
+A static portfolio for public art, architecture, computational design, and digital fabrication. Plain HTML, CSS, and browser JavaScript are generated from local Markdown and media; there is no client framework or bundler.
 
-The site uses plain HTML, CSS, and JavaScript with a small Node.js generator. The generator reads project descriptions from Markdown, processes source images and videos, and produces the homepage and individual project pages.
+## Commands
 
-If you are returning to the project after some time, start with How it fits together. If you only need to add or update a project, go directly to Adding a project.
-
-Quick start
-
-Install dependencies the first time:
-
+```sh
 npm install
-
-Generate the website:
-
 npm run generate
+npm run check
+```
 
-Preview index.html through a local web server. Do not open it by double-clicking the file, because navigation loaded with fetch() will not work reliably over file://.
+- `generate`: validate content, process changed media, and regenerate HTML/navigation.
+- `check`: JavaScript syntax checks, unit/integration tests, and scroll regression tests.
+- `test`: the complete automated test suite.
+- `test:scroll`: native scroll ownership, footer, and scroll-button regressions only.
 
-With the VS Code Live Server extension, right-click index.html and select Open with Live Server.
+Serve the root over HTTP to preview it (the current local preview uses port 4173). Opening HTML through `file://` does not support the navigation/configuration fetches reliably. Node.js with the built-in test runner and the installed Sharp dependency is required. FFmpeg is required only to create/update compressed videos.
 
-How it fits together
+## Source and generated files
 
-The project contains source files that you edit and generated files that the script replaces.
+| Area | Source | Generated output |
+| --- | --- | --- |
+| Project collection | `site.ini` → `project_path` (currently `projects-assemblies/`) | `project-<slug>.html`, homepage tiles |
+| Standalone pages | Root `<name>-assemblies/` folders | `<name>.html` |
+| Shared media | Root `miscellaneous/` | `images/miscellaneous/` |
+| Page structure | `build/templates/*.template.html` | Homepage, project, About, navigation HTML |
+| Styling | `style.css` | Used directly |
+| Browser behaviour | `include-partials.js` | Used directly |
+| Configuration | `site.ini` | Used by the generator and browser |
 
-Area
+Never hand-edit generated HTML. Change templates/generator code, then run `npm run generate`.
 
-Source — edit these
+Assembly folders are read-only to the generator. In particular, never modify `project-assemblies/` or `projects-assemblies/` programmatically. The owner maintains their Markdown and original media. Keep source folders backed up separately: the project collection is ignored by Git and is not restored by cloning the published repository.
 
-Generated — do not hand-edit
+## Architecture
 
-Project content
-
-Top-level .md files and media folders inside project-assemblies/
-
-project-<slug>.html
-
-Homepage
-
-build/templates/index.template.html
-
-index.html
-
-Project-page structure
-
-build/templates/project.template.html
-
-project-<slug>.html
-
-Images
-
-Original media in project-assemblies/<media-folder>/
-
-images/<slug>/*.webp
-
-Videos
-
-Original media in project-assemblies/<media-folder>/
-
-images/<slug>/*.mp4
-
-Styling
-
-style.css
-
-Not generated
-
-Browser behaviour
-
-include-partials.js and related scripts
-
-Not generated
-
-Shared navigation
-
-nav.html
-
-Not generated
-
-Configuration
-
-site.ini
-
-Not generated
-
-The most important rule is:
-
-Do not edit index.html or project-*.html directly. Those files are regenerated and your changes will be lost.
-
-Make structural changes in build/templates/, visual changes in style.css, and content changes in the Markdown files.
-
-Repository structure
-
+```text
 build/
-  generate.js                Website and media generator
+  generate.js                 Build orchestration, media pipeline, page rendering
+  lib/
+    config.js                 INI parsing and safe filesystem boundaries
+    frontmatter.js            Markdown metadata parsing and normalization
+    navigation.js             Navbar ordering and markup
   templates/
-    index.template.html      Homepage template
-    project.template.html    Project-page template
+    index.template.html
+    project.template.html
+    nav.template.html
+  tests/                      Node unit tests and isolated generator fixtures
+  test-column-bounce.js       Native-scroll regression checks
+include-partials.js           Browser interactions and startup
+style.css                     Responsive layout, appearance, transitions
+site.ini                      Content paths, version, navigation, splash settings
+```
 
-images/                      Generated web-ready media; committed
-project-assemblies/          Local Markdown and source media; ignored by Git
+The generator can be imported by tests without running a build. Browser functions also expose a CommonJS test interface; normal pages still load the same plain script, without an additional runtime dependency.
 
-index.html                   Generated homepage
-project-*.html               Generated project pages
-include-partials.js          Runtime navigation and page behaviour
-nav.html                     Shared navigation markup
-style.css                    Website styling
-site.ini                     Generator and site configuration
-package.json                 Node dependencies and commands
+## Generation workflow
 
-What the generator does
+1. Resolve configuration paths and discover Markdown/media.
+2. Validate folder mappings, standalone page title images, project-link references, output filename collisions, and navbar ordering.
+3. Reject image-output paths outside the site or overlapping any source folder.
+4. Generate navigation, calculate a content-based cache version, process media, and render pages.
 
-Running npm run generate executes build/generate.js.
+Preflight failures leave generated files untouched. A later media-processing failure can still leave partial build output; correct the reported media and rerun generation before publishing.
 
-1. Preflight validation
+Project Markdown lives directly in the configured collection directory. Original images/videos live in its immediate project subfolders. Each Markdown file must provide one nonempty `media_folder` value. Matching prefers a case-insensitive exact name, then normalized names; ambiguous matches and multiple Markdown files pointing to the same folder are rejected. A folder with media but no Markdown may be processed without creating a page/tile.
 
-Before changing generated files, the generator checks the Markdown-to-folder mappings and marked cross-project links.
+Homepage tiles sort by numeric `ID`, followed by unnumbered projects in title order. IDs retain their existing optional ordering behaviour.
 
-Generation stops with a list of exact mismatches if any of these problems exist:
+## Project Markdown
 
-A top-level Markdown file has no media_folder field.
-
-media_folder is blank or is written as a list.
-
-The named media folder does not exist.
-
-The folder match is ambiguous.
-
-More than one Markdown file points to the same media folder.
-
-A matched folder contains no supported media.
-
-A Markdown file is incorrectly placed inside a media folder.
-
-Two project titles produce the same output page filename.
-
-A marked cross-project link is missing, malformed, ambiguous, or points back to the same project.
-
-If any of these checks fails, the generator reports:
-
-No files were changed.
-
-A media folder without a linked Markdown file is allowed. Its media is processed, but it does not produce a page or homepage tile.
-
-2. Media processing
-
-Source images are:
-
-Automatically rotated according to their EXIF orientation.
-
-Resized into responsive widths up to 1800 pixels.
-
-Converted to WebP at quality 82.
-
-Reused from the cache when the generated files are current.
-
-Supported image types are JPEG, PNG, WebP, TIFF, and TIF.
-
-Videos are converted to web-ready H.264 MP4 files, scaled to a maximum width of 1920 pixels. FFmpeg must be installed to create or update video outputs. If FFmpeg is unavailable, current cached copies are retained and only missing or outdated videos are skipped.
-
-Generated media is written to:
-
-images/<project-slug>/
-
-3. Page generation
-
-For every valid Markdown/media-folder pair, the generator:
-
-Builds project-<slug>.html from project.template.html.
-
-Adds a project tile to index.html.
-
-Builds the project search terms from its title, subtitle, and displayed facts.
-
-Adds project cover and title images to the homepage splash rotation.
-
-The project slug comes from title. For example:
-
-The Exchange → the-exchange → project-the-exchange.html
-
-Homepage tiles are ordered by numeric ID from lowest to highest. Projects without a numeric ID follow in title order.
-
-Adding a project
-
-All project Markdown files live directly inside project-assemblies/. They can have descriptive filenames and do not need to be called project.md.
-
-Create a media folder inside project-assemblies/.
-
-Put that project’s original images and videos directly inside the media folder.
-
-Create a named Markdown file directly inside project-assemblies/, not inside the media folder.
-
-Add a media_folder field that points to the folder created in step 1.
-
-Run npm run generate.
-
-Example layout:
-
-project-assemblies/
-  digitalFUTURES.md
-  the-exchange.md
-
-  digitalFUTURES/
-    IMG_3200-2.jpg
-    IMG_3200-3.jpg
-
-  the exchange/
-    _MG_1457.jpg
-    _MG_1478.jpg
-
-Media-folder matching
-
-The media_folder field is required, but matching is intentionally flexible.
-
-The generator:
-
-Ignores capitalization.
-
-Treats spaces, underscores, hyphens, and other non-alphanumeric separators as equivalent.
-
-Prefers a case-insensitive exact folder-name match before normalized matching.
-
-Rejects ambiguous matches instead of guessing.
-
-These values can match the same folder:
-
-media_folder: digitalFUTURES
-media_folder: Digital Futures
-media_folder: digital-futures
-media_folder: digital_futures
-
-If normalization would match more than one folder, generation stops and prints all conflicting names.
-
-Markdown frontmatter
-
-A typical project file looks like this:
-
+```md
 ---
 title: "The Exchange"
 subtitle: "Senior High School, Carine"
@@ -244,292 +79,111 @@ media_folder: "the exchange"
 link_image: "_MG_1457"
 title_images:
   - "_MG_1478"
-  - "_MG_1508"
 excluded images:
   - "_MG_1486"
 design:
-  - "Daniel Giuffre"
   - "Andrei Smolik"
-year: 2023
+  - "Daniel Giuffre"
+year_completed: 2023
 client: "Department of Education"
-architect: "T&Z Architects"
-fabricator: "Kilmore Group"
-contractor: "PS Structures"
-budget: "$220,000"
-size: "7.4m × 8m × 2.8m"
 ---
 
-Inspired by objects undergoing transformation, symbolic of the learning process.
+Description paragraphs are separated by blank lines.
+```
 
-Reserved fields
+This is a small frontmatter parser, not a complete YAML implementation. It supports quoted/unquoted scalar values, numbers, indented lists, and comment lines beginning with `#`.
 
-Field
+- `title`: page title and slug; the media-folder name is the fallback.
+- `subtitle`: subheading; `year` or, if absent, `year_completed` supplies its year.
+- `media_folder`: required project-media folder mapping.
+- `link_image`: tile image basename; falls back to the first usable image.
+- `title_images`: opening image basename(s), without extensions.
+- `excluded images` / `excluded_images`: media excluded from the displayed gallery.
+- Other nonempty fields become project facts in their original order. Lists are joined with commas.
 
-Required?
+Descriptions support cross-project links:
 
-Purpose
+```text
+[[visible text|target project]]
+```
 
-title
+The target can be a project's Markdown filename, title, media-folder name, or slug. Missing, malformed, ambiguous, and self-referencing links fail validation.
 
-Recommended
+## About and other assembly pages
 
-Page title, homepage label, and generated slug. The media-folder name is the fallback.
+Root folders named `<name>-assemblies` generate a single page using the project template and add a navbar link. Each contains exactly one Markdown file with a title and valid `title_images`. The About portrait lives in `about-assemblies/`.
 
-subtitle
+Standalone pages do not require a project ID or media-folder field and do not appear as portfolio tiles. Local media goes to `images/page-<name>/`. If an assembly has no local media, the generator uses root `miscellaneous/` without adding every shared asset to that page's gallery.
 
-No
+See [assembly details](build/ASSEMBLIES.md) for naming and validation rules.
 
-Subtitle or location shown beside the title.
+## Configuration
 
-ID
-
-No
-
-Homepage ordering. Numeric IDs are sorted from lowest to highest.
-
-media_folder
-
-Yes
-
-Links the Markdown file to one media folder.
-
-link_image
-
-Recommended
-
-Image used for the homepage tile. Falls back to the first usable image.
-
-title_images
-
-No
-
-One image creates a full-width title image; two or more create the paired title layout.
-
-excluded images
-
-No
-
-Prevents listed media from appearing in the project gallery. The files are still processed.
-
-excluded_images is also recognized because frontmatter keys are normalized for internal matching.
-
-Project facts
-
-Every other non-empty frontmatter field becomes a project fact in the order written. The generator does not convert one field into another or apply aliases.
-
-For example:
-
-year: 2024
-
-renders as Year, while:
-
-year_completed: 2024
-
-renders as Year completed.
-
-Custom fields and lists are supported:
-
-instructors:
-  - "Andrei Smolik"
-  - "Teng-Wen Chang"
-students:
-  - "Student One"
-  - "Student Two"
-
-Lines whose first non-space character is # are treated as comments and do not appear on generated pages:
-
-# contractor: "Not displayed"
-
-Description text
-
-Text after the closing --- is the project description. Blank lines create separate paragraphs.
-
-To link description text to another generated project, use:
-
-[[visible link text|target project]]
-
-Example:
-
-This work continues research developed for the [[Curtin pavilion|Timber Plate Pavilion]].
-
-The target can be any one of these identifiers for the destination project:
-
-Markdown filename, with or without .md
-
-Project title
-
-Media-folder name
-
-Generated slug
-
-The generator validates every marked link before writing anything.
-
-Miscellaneous media
-
-Use this reserved folder for website media that does not belong to a project:
-
-project-assemblies/miscellaneous/
-
-Its media is processed normally, but it never creates a project page or tile. A bare splash_screen filename in site.ini refers to the compressed MP4 generated from this folder.
-
-site.ini
-
-Example:
-
+```ini
 name=Andrei Smolik
 email=you@example.com
-project_path=project-assemblies
+version=0.5.3
+project_path=projects-assemblies
 images_path=images
-
-Optional splash settings:
-
+links=projects,about
 splash_screen=opening-video.mov
 splash_text=black
+```
 
-Key
+- `links` specifies navbar order, comma-separated and case-insensitive. Unspecified assembly links follow alphabetically; unspecified Contact is last. Unknown/duplicate names stop the build.
+- `project_path` and `images_path` must remain within the site. Output cannot overlap source directories.
+- A bare `splash_screen` filename refers to the MP4 generated from root `miscellaneous/`. Paths and URLs are also supported.
+- `splash_text=black` selects the black splash-text variation.
+- Lines starting with `;` or `#` are comments.
 
-Purpose
+## Media pipeline
 
-name
+Images are EXIF-rotated, converted to WebP (quality 82), and resized to responsive widths up to 1800 pixels without enlargement. Intrinsic width/height attributes reserve layout space before loading. Supported formats: JPEG, PNG, WebP, TIFF/TIF.
 
-Site name used by the generator and navigation.
+Videos are converted to H.264 MP4, maximum width 1920 pixels, with fast-start metadata. If FFmpeg is unavailable, current cached files are retained; missing/outdated outputs are skipped. Browser videos are muted, inline, looping, and control-free; browser/device autoplay restrictions can still apply.
 
-email
+Current generated media is reused based on source/output timestamps and the image-pipeline revision marker.
 
-Contact email used by the browser navigation script.
+## Runtime and layout
 
-project_path
+- Desktop project pages (1000px and wider) have independent native text/media scrollports. Mobile uses the image-first stacked layout.
+- Native browser momentum and overscroll are retained. Do not reintroduce wheel interception or synthetic spring transforms. Navbar/footer remain outside elastic movement.
+- The splash temporarily consumes its opening scroll gesture, then removes its blocking listeners.
+- Text overflow has a bottom fade, hover scrollbar, mouse drag, and a down/up arrow. The media arrow scrolls only media on desktop.
+- Search filtering hides whole tile items; pointer closing does not transfer sticky focus to the magnifier. Keyboard closing returns focus.
+- Current navbar links are disabled and faded. Search appears only on the portfolio.
+- First-screen content shares one entrance fade. Later content uses IntersectionObserver. Reduced-motion overrides are in CSS.
+- The exit transition delay in JavaScript must remain synchronized with the matching 0.7s CSS transition.
 
-Location of top-level Markdown files and media folders. Must remain inside the site root.
+Navbar spacing controls live in `style.css`: `--nav-content-gap`, `--nav-outer-gap`, and `--nav-name-links-gap`.
 
-images_path
+## Testing
 
-Location for generated WebP and MP4 files.
+Automated tests cover parsing, navigation order, escaping/templates, responsive image data, search focus/filtering, selected links, dragging, autoplay fallback, and scrolling/chrome ownership. Integration tests run complete builds and preflight failures in temporary fixtures, never in the real source folders. They also check EXIF orientation, cached output, and source preservation.
 
-splash_screen
+Before handing off changes, regenerate and check desktop/mobile in a browser, especially:
 
-Optional splash video filename, relative path, absolute path, or URL.
+- Splash opening by click and scroll.
+- Search open/close, Escape, and empty results.
+- Text/media scrolling at both ends, their arrows, and mouse text dragging.
+- Navbar/footer alignment, current links, image-first mobile order, and About.
+- Page entrance/exit transitions and browser console errors.
 
-splash_text
+Automated wheel tests cannot establish the subjective feel of a physical trackpad; compare native bounce in Safari manually when changing scrolling.
 
-Use black for the black splash-text variation; other values use the default.
+## Preview and publishing
 
-Lines beginning with ; or # are comments.
+Changes stay local unless deployment is explicitly requested. Open a new tab in the existing Safari window for each completed preview, so previous tabs remain available for comparison.
 
-Template system
+GitHub Pages serves generated HTML/media from the repository's `main` branch, root folder. Only push to `main` when explicitly authorized; preserve requested releases with versioned commits/tags. Do not stage all files blindly: local source assets and unrelated user changes may be present.
 
-The templates use three simple marker types without a separate templating library:
+## Troubleshooting
 
-{{TOKEN}} — inserts one value.
+- **Validation fails:** use the exact Markdown/folder/link reported. Do not work around it by editing generated HTML.
+- **Changed content is missing:** check the correct source path, run generation, and verify it completed.
+- **Navigation is missing:** use an HTTP preview, not `file://`.
+- **A corrupt image stops processing:** the owner should re-export that source as a supported format, then regenerate.
+- **Templates/CSS appear stale:** regenerate to update the content-based asset cache version and reload the preview.
+- **A build fails after media processing starts:** fix the failure and rerun fully before publishing.
 
-<!-- IF:NAME --> ... <!-- END:NAME --> — keeps a block when its condition is true.
-
-<!-- EACH:NAME --> ... <!-- END:NAME --> — repeats a block for every item.
-
-Markers are resolved in this order: IF, then EACH, then token substitution.
-
-Avoid placing literal marker examples inside explanatory HTML comments in the templates. HTML comments cannot be nested, so an inner --> closes the outer comment and can leak documentation into the generated page.
-
-Runtime behaviour
-
-include-partials.js handles browser-side behaviour, including:
-
-Loading nav.html into each page.
-
-Unlocking and transitioning away from the homepage splash screen.
-
-Internal page transitions.
-
-Homepage project search.
-
-Scroll-triggered fade-ins.
-
-Synchronizing the measured navigation height with the --nav-height CSS variable.
-
-If the page-transition duration changes, keep the JavaScript delay synchronized with the matching transition duration in style.css.
-
-Animations respect the visitor’s prefers-reduced-motion setting.
-
-Publishing with GitHub Pages
-
-The live website is published directly from this repository. There is no separate upload step.
-
-Configure the repository under Settings → Pages:
-
-Source: Deploy from a branch
-
-Branch: main
-
-Folder: /(root)
-
-To publish an update:
-
-npm run generate
-git add .
-git commit -m "Update portfolio"
-git push
-
-GitHub Pages publishes the generated files after the push completes.
-
-What is excluded from Git
-
-The complete project-assemblies/ directory is intentionally excluded. It contains Markdown source and original high-resolution media that the live website does not need.
-
-The generated images/ directory and generated HTML pages must remain committed because GitHub Pages serves them directly.
-
-Typical exclusions include:
-
-project-assemblies/
-node_modules/
-.DS_Store
-images/**/.image-pipeline-revision
-
-Because project-assemblies/ is local-only, cloning the repository on another computer provides the published website but not all source material required to regenerate it. Keep project-assemblies/ backed up separately.
-
-Troubleshooting
-
-Generation stops with an exact Markdown/folder mismatch
-
-Read every item in the warning. The generator reports all preflight problems together and does not change generated files. Correct the media_folder fields or folder names, then run the generator again.
-
-Input file contains unsupported image format
-
-The named file may have the wrong extension, be incomplete, or contain unsupported/corrupt data. Open it in an image editor and export it again as a genuine JPEG or PNG, then rerun generation.
-
-A portrait image is rotated 90 degrees
-
-The current image pipeline applies EXIF orientation before WebP conversion. Run the generator again so older cached outputs are rebuilt under the current image-pipeline revision.
-
-A project description or page does not update
-
-Check that generation reached that project. A media-processing error earlier in the run can stop the script before later project pages are rewritten.
-
-Search the generated page directly:
-
-grep -n "distinctive text from the description" project-project-slug.html
-
-Also confirm that:
-
-The Markdown file is directly inside project-assemblies/.
-
-Its media_folder points to the intended folder.
-
-You ran the command from the website root.
-
-You are viewing the correct generated file and repository copy.
-
-Navigation does not appear locally
-
-Serve the site over HTTP with Live Server or another local server. Shared navigation loaded through fetch() does not work reliably through file://.
-
-Template or configuration changes do not appear
-
-Run npm run generate again. Editing a template or site.ini does not directly update existing generated HTML.
-
-Generated output seems unaffected by an edit
-
-Confirm you edited the source file rather than a generated page. Structural page changes belong in build/templates/; generated pages will be overwritten.
-
-Copyright
-
-Website code and all project content, images, and artwork are copyright © Andrei Smolik unless otherwise stated.
+Website code, content, images, and artwork are copyright © Andrei Smolik unless otherwise stated.

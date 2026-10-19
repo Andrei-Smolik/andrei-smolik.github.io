@@ -24,6 +24,9 @@ const {
   spawnSync,
 } = require('child_process');
 const sharp = require('sharp');
+const { parseIni, resolveSitePath, assertSafeOutputPath } = require('./lib/config');
+const { parseFrontmatter, asArray, normalizeFrontmatterKey, makeFactLabel, slugify } = require('./lib/frontmatter');
+const { orderNavigationPages, renderNavigation } = require('./lib/navigation');
 
 const ROOT = path.resolve(__dirname, '..');
 const TEMPLATES_DIR = path.join(__dirname, 'templates');
@@ -64,8 +67,8 @@ function buildAssetVersion() {
     .slice(0, 10);
 }
 
-const ASSET_VERSION =
-  buildAssetVersion();
+// Assigned after navigation generation; requiring this module never reads outputs.
+let ASSET_VERSION = '';
 
 const IMAGE_EXTENSIONS = new Set([
   '.jpg',
@@ -104,52 +107,6 @@ const MISCELLANEOUS_FOLDER_NAME =
    Config
    -------------------------------------------------------------------------- */
 
-function parseIni(text) {
-  const config = {};
-
-  text
-    .split('\n')
-    .forEach((line) => {
-      const trimmed =
-        line
-          .trim()
-          .replace(/\r$/, '');
-
-      if (
-        !trimmed ||
-        trimmed.startsWith(';') ||
-        trimmed.startsWith('#')
-      ) {
-        return;
-      }
-
-      const equalsIndex =
-        trimmed.indexOf('=');
-
-      if (equalsIndex === -1) {
-        return;
-      }
-
-      const key =
-        trimmed
-          .slice(0, equalsIndex)
-          .trim();
-
-      let value =
-        trimmed
-          .slice(equalsIndex + 1)
-          .trim();
-
-      value = value.replace(
-        /^["'](.*)["']$/,
-        '$1'
-      );
-
-      config[key] = value;
-    });
-
-  return config;
-}
 
 function loadConfig() {
   const iniPath =
@@ -187,24 +144,8 @@ function loadConfig() {
   return config;
 }
 
-function resolveWithinRoot(
-  configKey,
-  configValue
-) {
-  const resolved =
-    path.resolve(
-      ROOT,
-      configValue
-    );
-
-  if (!resolved.startsWith(ROOT)) {
-    warnAndExit(
-      `${configKey} "${configValue}" ` +
-      `resolves outside the site root (${ROOT}).`
-    );
-  }
-
-  return resolved;
+function resolveWithinRoot(configKey, configValue) {
+  return resolveSitePath(ROOT, configKey, configValue);
 }
 
 function resolveProjectPath(config) {
@@ -296,58 +237,19 @@ function listMarkdownFiles(directory) {
     );
 }
 
-function listImagesInFolder(directory) {
-  return fs
-    .readdirSync(
-      directory,
-      {
-        withFileTypes: true,
-      }
-    )
-    .filter(
-      (entry) =>
-        entry.isFile()
-    )
-    .map(
-      (entry) =>
-        entry.name
-    )
-    .filter(
-      (name) =>
-        IMAGE_EXTENSIONS.has(
-          path
-            .extname(name)
-            .toLowerCase()
-        )
-    )
+function listMediaInFolder(directory, extensions) {
+  return fs.readdirSync(directory, { withFileTypes: true })
+    .filter(entry => entry.isFile() && extensions.has(path.extname(entry.name).toLowerCase()))
+    .map(entry => entry.name)
     .sort();
 }
 
+function listImagesInFolder(directory) {
+  return listMediaInFolder(directory, IMAGE_EXTENSIONS);
+}
+
 function listVideosInFolder(directory) {
-  return fs
-    .readdirSync(
-      directory,
-      {
-        withFileTypes: true,
-      }
-    )
-    .filter(
-      (entry) =>
-        entry.isFile()
-    )
-    .map(
-      (entry) =>
-        entry.name
-    )
-    .filter(
-      (name) =>
-        VIDEO_EXTENSIONS.has(
-          path
-            .extname(name)
-            .toLowerCase()
-        )
-    )
-    .sort();
+  return listMediaInFolder(directory, VIDEO_EXTENSIONS);
 }
 
 function folderHasMedia(directory) {
@@ -389,12 +291,10 @@ function ensureProjectImagesOutputFolder(
   return outputDirectory;
 }
 
-function ensureMiscellaneousInputFolder(
-  projectRoot
-) {
+function ensureMiscellaneousInputFolder() {
   const miscellaneousDirectory =
     path.join(
-      projectRoot,
+      ROOT,
       MISCELLANEOUS_FOLDER_NAME
     );
 
@@ -559,6 +459,10 @@ async function processImageResponsive(
   return {
     basename,
     widths: uniqueWidths,
+    dimensions: {
+      width: naturalWidth,
+      height: (orientationSwapsDimensions ? metadata.width : metadata.height) || naturalWidth,
+    },
     cached: !rebuilt,
   };
 }
@@ -753,6 +657,7 @@ async function processProjectFolder(
       skippedVideos: 0,
       processedVideoBasenames: [],
       widthsByBasename: new Map(),
+      dimensionsByBasename: new Map(),
     };
   }
 
@@ -770,6 +675,7 @@ async function processProjectFolder(
 
   const widthsByBasename =
     new Map();
+  const dimensionsByBasename = new Map();
 
   let processedImages = 0;
   let cachedImages = 0;
@@ -779,6 +685,7 @@ async function processProjectFolder(
       basename,
       widths,
       cached,
+      dimensions,
     } =
       await processImageResponsive(
         path.join(
@@ -793,6 +700,7 @@ async function processProjectFolder(
       basename,
       widths
     );
+    dimensionsByBasename.set(basename, dimensions);
 
     if (cached) {
       cachedImages += 1;
@@ -852,179 +760,13 @@ async function processProjectFolder(
     skippedVideos,
     processedVideoBasenames,
     widthsByBasename,
+    dimensionsByBasename,
   };
-}
-
-/* --------------------------------------------------------------------------
-   Frontmatter parsing
-   -------------------------------------------------------------------------- */
-
-function parseScalar(raw) {
-  const value = raw.trim();
-
-  const quoted =
-    value.match(/^"(.*)"$/) ||
-    value.match(/^'(.*)'$/);
-
-  if (quoted) {
-    return quoted[1];
-  }
-
-  if (
-    /^-?\d+(\.\d+)?$/.test(value)
-  ) {
-    return Number(value);
-  }
-
-  return value;
-}
-
-function parseFrontmatter(raw) {
-  const match = raw.match(
-    /^---\r?\n([\s\S]*?)\r?\n---\r?\n?([\s\S]*)$/
-  );
-
-  if (!match) {
-    return {
-      data: {},
-      content: raw,
-    };
-  }
-
-  const [
-    ,
-    frontmatterText,
-    body,
-  ] = match;
-
-  const data = {};
-  let currentListKey = null;
-
-  for (
-    const line of
-    frontmatterText.split(/\r?\n/)
-  ) {
-    const trimmedLine =
-      line.trim();
-
-    if (
-      !trimmedLine ||
-      trimmedLine.startsWith('#')
-    ) {
-      continue;
-    }
-
-    const listItem =
-      line.match(
-        /^\s*-\s*(.+)$/
-      );
-
-    if (
-      listItem &&
-      currentListKey
-    ) {
-      data[currentListKey].push(
-        parseScalar(
-          listItem[1]
-        )
-      );
-
-      continue;
-    }
-
-    const keyValue =
-      line.match(
-        /^([^:]+):\s*(.*)$/
-      );
-
-    if (!keyValue) {
-      currentListKey = null;
-      continue;
-    }
-
-    const key =
-      keyValue[1].trim();
-
-    const value =
-      keyValue[2].trim();
-
-    if (value === '') {
-      data[key] = [];
-      currentListKey = key;
-    } else {
-      data[key] =
-        parseScalar(value);
-
-      currentListKey = null;
-    }
-  }
-
-  return {
-    data,
-    content: body,
-  };
-}
-
-function asArray(value) {
-  if (
-    value === undefined ||
-    value === null ||
-    value === ''
-  ) {
-    return [];
-  }
-
-  return Array.isArray(value)
-    ? value
-    : [value];
-}
-
-function normalizeFrontmatterKey(key) {
-  return String(key)
-    .trim()
-    .toLowerCase()
-    .replace(
-      /[\s-]+/g,
-      '_'
-    );
-}
-
-function makeFactLabel(key) {
-  const label =
-    String(key)
-      .trim()
-      .replace(
-        /[_-]+/g,
-        ' '
-      )
-      .replace(
-        /\s+/g,
-        ' '
-      );
-
-  return (
-    label.charAt(0).toUpperCase() +
-    label.slice(1)
-  );
 }
 
 /* --------------------------------------------------------------------------
    Small helpers
    -------------------------------------------------------------------------- */
-
-function slugify(value) {
-  return String(value)
-    .toLowerCase()
-    .trim()
-    .replace(
-      /[^a-z0-9]+/g,
-      '-'
-    )
-    .replace(
-      /^-+|-+$/g,
-      ''
-    );
-}
 
 function getFrontmatterValue(
   data,
@@ -1997,9 +1739,11 @@ function renderDescriptionText(
 function makeImageResolver(
   imagesPathConfig,
   slug,
-  widthsByBasename
+  widthsByBasename,
+  dimensionsByBasename = new Map()
 ) {
   return (basename) => {
+    const dimensions = dimensionsByBasename.get(basename) || {};
     const widths =
       widthsByBasename.get(
         basename
@@ -2014,6 +1758,7 @@ function makeImageResolver(
 
     if (widths.length === 0) {
       return {
+        ...dimensions,
         src: `${urlBase}.webp`,
         srcset: '',
       };
@@ -2034,6 +1779,7 @@ function makeImageResolver(
         .join(', ');
 
     return {
+      ...dimensions,
       src:
         `${urlBase}-${largest}w.webp`,
       srcset,
@@ -2279,6 +2025,8 @@ function renderProjectPage(
       const {
         src,
         srcset,
+        width,
+        height,
       } =
         imageWebPath(basename);
 
@@ -2290,7 +2038,9 @@ function renderProjectPage(
         .split(
           '{{TITLE_IMAGE_SRCSET}}'
         )
-        .join(srcset);
+        .join(srcset)
+        .split('{{TITLE_IMAGE_WIDTH}}').join(String(width))
+        .split('{{TITLE_IMAGE_HEIGHT}}').join(String(height));
     }
   );
 
@@ -2376,6 +2126,8 @@ function renderProjectPage(
       const {
         src,
         srcset,
+        width,
+        height,
       } =
         imageWebPath(
           item.basename
@@ -2389,7 +2141,9 @@ function renderProjectPage(
         .split(
           '{{GALLERY_IMAGE_SRCSET}}'
         )
-        .join(srcset);
+        .join(srcset)
+        .split('{{GALLERY_IMAGE_WIDTH}}').join(String(width))
+        .split('{{GALLERY_IMAGE_HEIGHT}}').join(String(height));
     }
   );
 
@@ -2440,6 +2194,8 @@ function renderProjectPage(
 
       TITLE_IMAGE_SRCSET:
         singleTitleImage.srcset,
+      TITLE_IMAGE_WIDTH: singleTitleImage.width || '',
+      TITLE_IMAGE_HEIGHT: singleTitleImage.height || '',
     }
   );
 
@@ -2718,6 +2474,8 @@ async function main() {
   const imagesPath =
     resolveImagesPath(config);
 
+  const miscellaneousPath = ensureMiscellaneousInputFolder();
+
   const splashVideoSource =
     resolveSplashVideoSource(
       config.splash_screen,
@@ -2791,6 +2549,31 @@ async function main() {
       markdownByFolder
     );
 
+  // Other root-level <name>-assemblies folders produce one standalone page.
+  // Sources are read-only; generated pages/media live outside these folders.
+  const singlePages = findSubfolders(ROOT)
+    .filter(folder => /^[a-z][a-z0-9]*-assemblies$/i.test(path.basename(folder)))
+    .filter(folder => path.resolve(folder) !== path.resolve(projectPath))
+    .sort()
+    .map(folder => {
+      const slug = path.basename(folder).split('-')[0].toLowerCase();
+      if (['index', 'nav', 'contact'].includes(slug)) {
+        throw new Error(`Reserved assembly page name: ${slug}`);
+      }
+      const files = listMarkdownFiles(folder);
+      if (files.length !== 1) throw new Error(`${path.basename(folder)} requires exactly one Markdown file.`);
+      const parsed = parseFrontmatter(fs.readFileSync(files[0], 'utf8'));
+      if (!parsed.data.title || !asArray(parsed.data.title_images).length) {
+        throw new Error(`${files[0]} requires title and title_images.`);
+      }
+      const mediaFolder = folderHasMedia(folder) ? folder : miscellaneousPath;
+      const available = new Set(listImagesInFolder(mediaFolder).map(basenameNoExt));
+      for (const image of asArray(parsed.data.title_images)) {
+        if (!available.has(image)) throw new Error(`${files[0]}: title image "${image}" does not exist.`);
+      }
+      return { folder, mediaFolder, slug, markdownPath: files[0], content: parsed.content };
+    });
+
   const descriptionLinkProblems = [
     ...projectReferenceIndex.problems,
 
@@ -2798,6 +2581,7 @@ async function main() {
       projectReferenceIndex.projects,
       projectReferenceIndex.references
     ),
+    ...validateDescriptionProjectLinks(singlePages, projectReferenceIndex.references),
   ];
 
   if (
@@ -2811,15 +2595,17 @@ async function main() {
     return;
   }
 
-  /*
-   * Nothing above this point writes to disk.
-   */
-  ensureMiscellaneousInputFolder(
-    projectPath
-  );
+  assertSafeOutputPath(ROOT, imagesPath, [projectPath, miscellaneousPath, ...singlePages.map(page => page.folder)]);
+  const projectLabel = path.basename(projectPath).split('-')[0];
+  const navigationPages = orderNavigationPages(projectLabel, singlePages, config.links);
+  const navHtml = renderNavigation(loadTemplate('nav.template.html'), navigationPages, escapeHtml);
+
+  // All configuration/content preflight checks above are read-only.
+  fs.writeFileSync(path.join(ROOT, 'nav.html'), navHtml, 'utf8');
+  ASSET_VERSION = buildAssetVersion();
 
   const foldersWithMedia =
-    subfolders.filter(
+    [...projectFolders, miscellaneousPath].filter(
       folderHasMedia
     );
 
@@ -2873,12 +2659,40 @@ async function main() {
 
   const projects = [];
 
+  const miscellaneousResult = await processProjectFolder(miscellaneousPath,
+    ensureProjectImagesOutputFolder(imagesPath, MISCELLANEOUS_FOLDER_NAME), canProcessVideos);
+
+  for (const page of singlePages) {
+    const usesSharedMedia = page.mediaFolder === miscellaneousPath;
+    const mediaSlug = usesSharedMedia ? MISCELLANEOUS_FOLDER_NAME : `page-${page.slug}`;
+    const result = usesSharedMedia ? miscellaneousResult : await processProjectFolder(page.mediaFolder,
+      ensureProjectImagesOutputFolder(imagesPath, mediaSlug), isFfmpegAvailable());
+    const data = buildProjectPageData({
+      mdPath: page.markdownPath,
+      projectDir: page.mediaFolder,
+      slug: page.slug,
+      imageWebPath: makeImageResolver(config.images_path, mediaSlug, result.widthsByBasename, result.dimensionsByBasename),
+      videoWebPath: makeVideoResolver(config.images_path, mediaSlug),
+      processedVideoBasenames: result.processedVideoBasenames,
+    });
+    if (!data) throw new Error(`Unable to generate ${page.slug}.html`);
+    // Shared assets belong to multiple pages, not an implicit page gallery.
+    if (usesSharedMedia) data.galleryMedia = [];
+    fs.writeFileSync(path.join(ROOT, `${page.slug}.html`),
+      renderProjectPage(data, siteName, siteVersion,
+        page.slug === 'about' ? projectTemplate.replace('class="project"', 'class="project about-page"') : projectTemplate,
+        projectReferenceIndex.references), 'utf8');
+    console.log(`Wrote ${page.slug}.html from ${path.basename(page.folder)}.`);
+  }
+
   for (
     const folder of
     foldersWithMedia
   ) {
     const folderName =
       path.basename(folder);
+
+    if (folder === miscellaneousPath) continue;
 
     const isMiscellaneous =
       folderName.toLowerCase() ===
@@ -2969,7 +2783,8 @@ async function main() {
       makeImageResolver(
         config.images_path,
         slug,
-        result.widthsByBasename
+        result.widthsByBasename,
+        result.dimensionsByBasename
       );
 
     const videoWebPath =
@@ -3044,11 +2859,18 @@ async function main() {
   );
 }
 
-main().catch((error) => {
-  console.error(
-    'Generator failed:',
-    error.message
-  );
+// Importable for regression tests without starting a build or writing files.
+module.exports = {
+  buildFactRows, buildProjectPageData, buildProjectReferenceIndex,
+  escapeHtml, findProjectLinkMarkers, makeImageResolver,
+  renderDescriptionText, renderIndexPage, renderProjectPage,
+  resolveEach, resolveIf, fillTokens, stripComments,
+  validateDescriptionProjectLinks, validateMarkdownFolderLinks,
+};
 
-  process.exit(1);
-});
+if (require.main === module) {
+  main().catch(error => {
+    console.error('Generator failed:', error.message);
+    process.exitCode = 1;
+  });
+}

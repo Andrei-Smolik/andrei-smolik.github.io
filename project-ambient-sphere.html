@@ -2,6 +2,14 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <script>
+    // Hide before the first paint, not after asynchronous navigation loads.
+    document.documentElement.classList.add('page-loading');
+    window.pageEntranceFallback = window.setTimeout(() => {
+      document.documentElement.classList.remove('page-loading');
+      document.querySelectorAll('.fade-in').forEach(element => element.classList.add('is-visible'));
+    }, 4000);
+  </script>
   <meta
     name="viewport"
     content="width=device-width, initial-scale=1.0"
@@ -22,7 +30,7 @@
 
   <link
   rel="stylesheet"
-  href="style.css?v=86299cdd2e"
+  href="style.css?v=50d7f24c14"
 />
 </head>
 
@@ -32,12 +40,13 @@
     class="page-scroll"
     id="pageScroll"
   >
-    <div data-include="nav.html?v=86299cdd2e"></div>
+    <div data-include="nav.html?v=50d7f24c14"></div>
 
+    <div class="page-content-frame">
     <main class="project">
 
       <div class="project-information-panel">
-      <div class="project-information" id="projectInformation" tabindex="0" role="region" aria-label="Project information">
+      <div class="project-information fade-in" id="projectInformation" tabindex="0" role="region" aria-label="Project information">
         <div class="project-header">
           <h1 class="project-title-line">
             <strong>Ambient Sphere</strong>
@@ -89,6 +98,8 @@
           <img
             src="images/ambient-sphere/IMG_3761-1800w.webp"
             srcset="images/ambient-sphere/IMG_3761-480w.webp 480w, images/ambient-sphere/IMG_3761-800w.webp 800w, images/ambient-sphere/IMG_3761-1200w.webp 1200w, images/ambient-sphere/IMG_3761-1800w.webp 1800w"
+            width="5184"
+            height="3240"
             sizes="(min-width: 1000px) 43vw, 80vw"
             alt=""
             decoding="async"
@@ -108,6 +119,8 @@
           <img
             src="images/ambient-sphere/IMG_3732-1800w.webp"
             srcset="images/ambient-sphere/IMG_3732-480w.webp 480w, images/ambient-sphere/IMG_3732-800w.webp 800w, images/ambient-sphere/IMG_3732-1200w.webp 1200w, images/ambient-sphere/IMG_3732-1800w.webp 1800w"
+            width="4702"
+            height="2939"
             sizes="(min-width: 1000px) 43vw, 80vw"
             alt=""
             loading="lazy"
@@ -125,6 +138,8 @@
           <img
             src="images/ambient-sphere/IMG_3779-1800w.webp"
             srcset="images/ambient-sphere/IMG_3779-480w.webp 480w, images/ambient-sphere/IMG_3779-800w.webp 800w, images/ambient-sphere/IMG_3779-1200w.webp 1200w, images/ambient-sphere/IMG_3779-1800w.webp 1800w"
+            width="5184"
+            height="3456"
             sizes="(min-width: 1000px) 43vw, 80vw"
             alt=""
             loading="lazy"
@@ -142,6 +157,8 @@
           <img
             src="images/ambient-sphere/IMG_3801-1800w.webp"
             srcset="images/ambient-sphere/IMG_3801-480w.webp 480w, images/ambient-sphere/IMG_3801-800w.webp 800w, images/ambient-sphere/IMG_3801-1200w.webp 1200w, images/ambient-sphere/IMG_3801-1800w.webp 1800w"
+            width="5184"
+            height="3456"
             sizes="(min-width: 1000px) 43vw, 80vw"
             alt=""
             loading="lazy"
@@ -159,6 +176,8 @@
           <img
             src="images/ambient-sphere/IMG_3811-1800w.webp"
             srcset="images/ambient-sphere/IMG_3811-480w.webp 480w, images/ambient-sphere/IMG_3811-800w.webp 800w, images/ambient-sphere/IMG_3811-1200w.webp 1200w, images/ambient-sphere/IMG_3811-1800w.webp 1800w"
+            width="5184"
+            height="3456"
             sizes="(min-width: 1000px) 43vw, 80vw"
             alt=""
             loading="lazy"
@@ -176,6 +195,8 @@
           <img
             src="images/ambient-sphere/Picture11-1500w.webp"
             srcset="images/ambient-sphere/Picture11-480w.webp 480w, images/ambient-sphere/Picture11-800w.webp 800w, images/ambient-sphere/Picture11-1200w.webp 1200w, images/ambient-sphere/Picture11-1500w.webp 1500w"
+            width="1500"
+            height="845"
             sizes="(min-width: 1000px) 43vw, 80vw"
             alt=""
             loading="lazy"
@@ -193,6 +214,8 @@
           <img
             src="images/ambient-sphere/title-960w.webp"
             srcset="images/ambient-sphere/title-480w.webp 480w, images/ambient-sphere/title-800w.webp 800w, images/ambient-sphere/title-960w.webp 960w"
+            width="960"
+            height="960"
             sizes="(min-width: 1000px) 43vw, 80vw"
             alt=""
             loading="lazy"
@@ -209,13 +232,14 @@
       </div>
 
     </main>
+    </div>
 
     <footer class="site-footer">
       <span>
         &copy;
         <span id="year"></span>
         <span data-site-name>ANDREI SMOLIK</span>
-        <span class="site-footer__version">(v0.5.3)</span>
+        <span class="site-footer__version">(v0.5.4)</span>
       </span>
     </footer>
   </div>
@@ -231,7 +255,7 @@
     <svg viewBox="0 0 20 20" aria-hidden="true" focusable="false"><path d="M10 17V3M5 8l5-5 5 5" /></svg>
   </button>
 
-  <script src="include-partials.js?v=86299cdd2e"></script>
+  <script src="include-partials.js?v=50d7f24c14"></script>
 
   <script>
     document.getElementById('year').textContent =

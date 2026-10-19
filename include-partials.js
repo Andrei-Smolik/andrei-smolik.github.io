@@ -15,6 +15,9 @@
    Helpers
    -------------------------------------------------------------------------- */
 
+const DESKTOP_QUERY = '(min-width: 1000px)';
+const REDUCED_MOTION_QUERY = '(prefers-reduced-motion: reduce)';
+
 function isIndexPage() {
   const path = window.location.pathname;
 
@@ -116,7 +119,12 @@ function initNavSearch() {
     input.focus();
   }
 
-  function closeSearch() {
+  function closeSearch({ restoreFocus = false } = {}) {
+    // A pointer close must not transfer the input's focus-visible state to
+    // the magnifier. Keyboard users still return to the opening control.
+    if (document.activeElement === input || document.activeElement === close) {
+      document.activeElement.blur();
+    }
     links.classList.remove(
       'is-searching'
     );
@@ -127,7 +135,7 @@ function initNavSearch() {
       new Event('input')
     );
 
-    toggle.focus();
+    if (restoreFocus) toggle.focus({ preventScroll: true });
   }
 
   toggle.addEventListener(
@@ -137,14 +145,14 @@ function initNavSearch() {
 
   close.addEventListener(
     'click',
-    closeSearch
+    event => closeSearch({ restoreFocus: event.detail === 0 })
   );
 
   input.addEventListener(
     'keydown',
     (event) => {
       if (event.key === 'Escape') {
-        closeSearch();
+        closeSearch({ restoreFocus: true });
       }
     }
   );
@@ -153,6 +161,53 @@ function initNavSearch() {
 /* --------------------------------------------------------------------------
    Site configuration
    -------------------------------------------------------------------------- */
+
+function parseIni(text) {
+  const config = {};
+
+  text
+    .split('\n')
+    .forEach((line) => {
+      const trimmed =
+        line
+          .trim()
+          .replace(/\r$/, '');
+
+      if (
+        !trimmed ||
+        trimmed.startsWith(';') ||
+        trimmed.startsWith('#')
+      ) {
+        return;
+      }
+
+      const equalsIndex =
+        trimmed.indexOf('=');
+
+      if (equalsIndex === -1) {
+        return;
+      }
+
+      const key =
+        trimmed
+          .slice(0, equalsIndex)
+          .trim();
+
+      let value =
+        trimmed
+          .slice(equalsIndex + 1)
+          .trim();
+
+      value = value.replace(
+        /^["'](.*)["']$/,
+        '$1'
+      );
+
+      config[key] = value;
+    });
+
+  return config;
+}
 
 async function initContactLinks() {
   try {
@@ -169,54 +224,7 @@ async function initContactLinks() {
     const text =
       await response.text();
 
-    const config = {};
-
-    text
-      .split('\n')
-      .forEach((line) => {
-        const trimmed =
-          line
-            .trim()
-            .replace(/\r$/, '');
-
-        if (
-          !trimmed ||
-          trimmed.startsWith(';') ||
-          trimmed.startsWith('#')
-        ) {
-          return;
-        }
-
-        const equalsIndex =
-          trimmed.indexOf('=');
-
-        if (equalsIndex === -1) {
-          return;
-        }
-
-        const key =
-          trimmed
-            .slice(
-              0,
-              equalsIndex
-            )
-            .trim();
-
-        let value =
-          trimmed
-            .slice(
-              equalsIndex + 1
-            )
-            .trim();
-
-        value =
-          value.replace(
-            /^["'](.*)["']$/,
-            '$1'
-          );
-
-        config[key] = value;
-      });
+    const config = parseIni(text);
 
     if (config.name) {
       document
@@ -431,21 +439,7 @@ function initSplashVideo() {
   video.playsInline = true;
 
   function playVideo() {
-    const request =
-      video.play();
-
-    if (
-      request &&
-      typeof request.catch ===
-      'function'
-    ) {
-      request.catch(() => {
-        /*
-         * Autoplay may temporarily be
-         * blocked by the browser.
-         */
-      });
-    }
+    playVideoSafely(video);
   }
 
   function revealVideo() {
@@ -531,6 +525,16 @@ function initSplashVideo() {
    Project video autoplay
    -------------------------------------------------------------------------- */
 
+function playVideoSafely(video) {
+  // Browsers can reject autoplay (or return no promise on older engines).
+  // Playback failure must not interrupt navigation/page initialisation.
+  try {
+    video.play()?.catch(() => {});
+  } catch {
+    // A later loadeddata/canplay or user gesture can retry playback.
+  }
+}
+
 function initProjectVideos() {
   const videos =
     document.querySelectorAll(
@@ -545,7 +549,7 @@ function initProjectVideos() {
     video.playsInline = true;
 
     function play() {
-      video.play().catch(() => {});
+      playVideoSafely(video);
     }
 
     video.addEventListener(
@@ -581,11 +585,15 @@ function initSplashScrollTrigger() {
 
   const pageScroll = document.getElementById('pageScroll');
 
-  if (!splash || !checkbox || !pageScroll) {
+  if (!splash || !checkbox || !pageScroll || checkbox.checked) {
     return;
   }
 
+  const openingGesture = new AbortController();
   let scrollLocked = false;
+  checkbox.addEventListener('change', () => {
+    if (checkbox.checked && !scrollLocked) openingGesture.abort();
+  });
   splash.querySelector('.splash__cta')?.addEventListener('click', () => {
     checkbox.checked = true;
     checkbox.dispatchEvent(new Event('change'));
@@ -610,6 +618,8 @@ function initSplashScrollTrigger() {
     pageScroll.scrollTop = 0;
     pageScroll.classList.remove('is-splash-scroll-locked');
     scrollLocked = false;
+    // Do not retain a blocking wheel/touch listener after the splash exits.
+    openingGesture.abort();
   }
 
   function consumeOpeningGesture(event) {
@@ -642,16 +652,16 @@ function initSplashScrollTrigger() {
     if (!event.ctrlKey && (event.deltaX || event.deltaY)) {
       consumeOpeningGesture(event);
     }
-  }, { passive: false, capture: true });
+  }, { passive: false, capture: true, signal: openingGesture.signal });
 
   document.addEventListener('touchstart', () => {
     if (!checkbox.checked || scrollLocked) {
       touchActive = true;
     }
-  }, { passive: true, capture: true });
+  }, { passive: true, capture: true, signal: openingGesture.signal });
 
   document.addEventListener('touchmove', consumeOpeningGesture,
-    { passive: false, capture: true });
+    { passive: false, capture: true, signal: openingGesture.signal });
 
   function endTouch(event) {
     if (event.touches.length === 0) {
@@ -663,14 +673,14 @@ function initSplashScrollTrigger() {
     }
   }
 
-  document.addEventListener('touchend', endTouch, { passive: true, capture: true });
-  document.addEventListener('touchcancel', endTouch, { passive: true, capture: true });
+  document.addEventListener('touchend', endTouch, { passive: true, capture: true, signal: openingGesture.signal });
+  document.addEventListener('touchcancel', endTouch, { passive: true, capture: true, signal: openingGesture.signal });
 
   document.addEventListener('keydown', (event) => {
     if (['ArrowDown', 'PageDown', ' '].includes(event.key)) {
       consumeOpeningGesture(event);
     }
-  }, { capture: true });
+  }, { capture: true, signal: openingGesture.signal });
 
   pageScroll.addEventListener('scroll', () => {
     if (scrollLocked && pageScroll.scrollTop !== 0) {
@@ -684,14 +694,12 @@ function initSplashScrollTrigger() {
    -------------------------------------------------------------------------- */
 
 function initPageEntrance() {
+  // Setup succeeded. The splash may intentionally stay open longer than
+  // the failure timeout; only its unlock should reveal the page below it.
+  window.clearTimeout(window.pageEntranceFallback);
   const navigation =
     document.querySelector(
       '.site-nav'
-    );
-
-  const content =
-    document.querySelector(
-      'main'
     );
 
   function revealPage() {
@@ -699,14 +707,9 @@ function initPageEntrance() {
       'is-visible'
     );
 
-    content?.classList.remove(
-      'page-enter'
-    );
+    window.clearTimeout(window.pageEntranceFallback);
+    document.documentElement.classList.remove('page-loading');
   }
-
-  content?.classList.add(
-    'page-enter'
-  );
 
   const checkbox =
     document.getElementById(
@@ -730,7 +733,7 @@ function initPageEntrance() {
     'change',
     () => {
       if (checkbox.checked) {
-        revealPage();
+        requestAnimationFrame(() => requestAnimationFrame(revealPage));
       }
     }
   );
@@ -747,6 +750,7 @@ function initPageExitTransition() {
   // Safari can restore the outgoing page from its back-forward cache.
   window.addEventListener('pageshow', (event) => {
     if (!event.persisted) return;
+    document.documentElement.classList.remove('page-loading');
     document.body.classList.remove('is-page-leaving');
     document.querySelectorAll('.page-leaving').forEach(element => {
       element.classList.remove('page-leaving');
@@ -857,9 +861,6 @@ function initNavHeightSync() {
     return;
   }
 
-  const textMeasure = document.createElement('canvas').getContext('2d');
-  const contactLink = navigation.querySelector('[data-contact-mailto]');
-
   function syncHeight() {
     const height =
       navigation
@@ -873,37 +874,7 @@ function initNavHeightSync() {
         `${height}px`
       );
 
-    // Opening a second search row should move content down with the nav,
-    // without also enlarging the established gap below the divider.
-    if (navigation.querySelector('.site-nav__links.is-searching') ||
-        !textMeasure || !contactLink || !contactLink.getClientRects().length) {
-      return;
-    }
-
-    const textStyle = getComputedStyle(contactLink);
-    textMeasure.font = `${textStyle.fontWeight} ${textStyle.fontSize} ${textStyle.fontFamily}`;
-    const label = contactLink.textContent.trim();
-    const renderedLabel = textStyle.textTransform === 'uppercase'
-      ? label.toUpperCase()
-      : label;
-    const metrics = textMeasure.measureText(renderedLabel);
-
-    // A zero-sized inline box sits on the actual text baseline. Canvas ink
-    // metrics exclude the font's invisible leading and descender space.
-    const baseline = document.createElement('span');
-    baseline.setAttribute('aria-hidden', 'true');
-    baseline.style.cssText = 'display:inline-block;width:0;height:0;padding:0;margin:0;border:0;vertical-align:baseline;';
-    contactLink.append(baseline);
-    const textBottom = baseline.getBoundingClientRect().top
-      + metrics.actualBoundingBoxDescent;
-    baseline.remove();
-
-    const dividerThickness = parseFloat(getComputedStyle(navigation, '::after').height);
-    const dividerTop = navigation.getBoundingClientRect().bottom - dividerThickness;
-    const gap = Math.max(0, dividerTop - textBottom);
-
-    // Keep the space below the divider twice the visible space above it.
-    document.documentElement.style.setProperty('--nav-content-gap', `${gap * 2}px`);
+    // Spacing is owned by CSS; only measure the fixed header's total height.
   }
 
   syncHeight();
@@ -1028,9 +999,6 @@ function initScrollFadeIn() {
       .webkitOverflowScrolling =
         'touch';
 
-    pageScroll.style
-      .overscrollBehaviorY =
-        'auto';
   }
 
   const observer =
@@ -1089,9 +1057,6 @@ function initScrollFadeIn() {
         element.style.transform =
           'none';
 
-        element.style.transition =
-          'opacity 0.45s ease';
-
         element.style.touchAction =
           'manipulation';
 
@@ -1109,11 +1074,10 @@ function initScrollFadeIn() {
         elementTop <
         firstScreenBottom;
 
-      if (
-        isPhone &&
-        isIndexTile &&
-        isOnFirstScreen
-      ) {
+      if (isOnFirstScreen) {
+        // The shared page fade reveals the first screen exactly once.
+        // Do not multiply its opacity by a second image/tile transition.
+        element.classList.add('is-page-initial');
         element.classList.add(
           'is-visible'
         );
@@ -1122,148 +1086,6 @@ function initScrollFadeIn() {
       }
 
       observer.observe(element);
-    }
-  );
-}
-
-/* --------------------------------------------------------------------------
-   Touch rubber-band overscroll
-   -------------------------------------------------------------------------- */
-
-function initTouchRubberBand() {
-  const pageScroll =
-    document.getElementById(
-      'pageScroll'
-    );
-
-  const content =
-    pageScroll?.querySelector(
-      'main'
-    );
-
-  if (
-    !pageScroll ||
-    !content ||
-    !isTouchDevice()
-  ) {
-    return;
-  }
-
-  let startY = 0;
-  let offset = 0;
-
-  function release() {
-    if (offset === 0) {
-      return;
-    }
-
-    content.classList.add(
-      'is-rubberband-releasing'
-    );
-
-    offset = 0;
-    content.style.setProperty(
-      '--rubberband-offset',
-      '0px'
-    );
-
-    window.setTimeout(
-      () => {
-        content.classList.remove(
-          'is-rubberband-active'
-        );
-
-        content.classList.remove(
-          'is-rubberband-releasing'
-        );
-      },
-      450
-    );
-  }
-
-  pageScroll.addEventListener(
-    'touchstart',
-    (event) => {
-      startY = event.touches[0].clientY;
-      offset = 0;
-
-    content.classList.remove(
-      'is-rubberband-releasing'
-    );
-    },
-    {
-      passive: true,
-    }
-  );
-
-  pageScroll.addEventListener(
-    'touchmove',
-    (event) => {
-      const currentY =
-        event.touches[0].clientY;
-
-      const distance =
-        currentY - startY;
-
-      const atTop =
-        pageScroll.scrollTop <= 0;
-
-      const atBottom =
-        pageScroll.scrollTop >=
-        pageScroll.scrollHeight -
-          pageScroll.clientHeight -
-          1;
-
-      const pullingPastTop =
-        atTop && distance > 0;
-
-      const pullingPastBottom =
-        atBottom && distance < 0;
-
-      if (
-        !pullingPastTop &&
-        !pullingPastBottom
-      ) {
-        return;
-      }
-
-      event.preventDefault();
-
-      offset = Math.max(
-        -96,
-        Math.min(
-          96,
-          distance * 0.35
-        )
-      );
-
-      content.classList.add(
-        'is-rubberband-active'
-      );
-
-      content.style.setProperty(
-        '--rubberband-offset',
-        `${offset}px`
-      );
-    },
-    {
-      passive: false,
-    }
-  );
-
-  pageScroll.addEventListener(
-    'touchend',
-    release,
-    {
-      passive: true,
-    }
-  );
-
-  pageScroll.addEventListener(
-    'touchcancel',
-    release,
-    {
-      passive: true,
     }
   );
 }
@@ -1287,18 +1109,18 @@ function initBackToTop() {
       'pageScroll'
     );
 
-  const scrollTarget =
-    pageScroll ||
-    window;
+  const media = document.querySelector('main.project .project-media');
+  const desktop = window.matchMedia(DESKTOP_QUERY);
 
   const reduceMotion =
     window.matchMedia(
-      '(prefers-reduced-motion: reduce)'
+      REDUCED_MOTION_QUERY
     ).matches;
 
   function getScrollPosition() {
-    return pageScroll
-      ? pageScroll.scrollTop
+    const target = getMediaScrollTarget();
+    return target
+      ? target.scrollTop
       : window.scrollY;
   }
 
@@ -1334,7 +1156,7 @@ function initBackToTop() {
   button.addEventListener(
     'click',
     () => {
-      scrollTarget.scrollTo({
+      (getMediaScrollTarget() || window).scrollTo({
         top: 0,
 
         behavior:
@@ -1345,7 +1167,7 @@ function initBackToTop() {
     }
   );
 
-  scrollTarget.addEventListener(
+  (pageScroll || window).addEventListener(
     'scroll',
     updateButton,
     {
@@ -1353,12 +1175,84 @@ function initBackToTop() {
     }
   );
 
+  media?.addEventListener('scroll', updateButton, { passive: true });
+  desktop.addEventListener('change', updateButton);
+
   updateButton();
 }
 
 /* --------------------------------------------------------------------------
    Initialise
    -------------------------------------------------------------------------- */
+
+function getMediaScrollTarget() {
+  const media = document.querySelector('main.project .project-media');
+  return media && window.matchMedia(DESKTOP_QUERY).matches
+    ? media : document.getElementById('pageScroll');
+}
+
+// Use the browser's complete scrolling pipeline, including boundary physics.
+// contain keeps the columns independent; unlike none, it allows local bounce.
+function initNativeScrollLayout() {
+  const page = document.getElementById('pageScroll');
+  const media = document.querySelector('main.project .project-media');
+  const footer = page?.querySelector('.site-footer');
+  if (!page || !footer) return;
+  const desktop = window.matchMedia(DESKTOP_QUERY);
+  const spacer = document.createElement('div');
+  if (media) {
+    media.tabIndex = 0;
+    media.setAttribute('role', 'region');
+    media.setAttribute('aria-label', 'Project images and videos');
+  }
+  spacer.className = 'page-footer-space';
+  spacer.setAttribute('aria-hidden', 'true');
+  page.classList.add('native-scroll-layout');
+  let frame = null;
+  let footerHeight = 0;
+
+  function updateFooter() {
+    frame = null;
+    const scroller = getMediaScrollTarget();
+    const limit = Math.max(0, scroller.scrollHeight - scroller.clientHeight);
+    // Safari reports scrollTop beyond both bounds during native elasticity.
+    // Clamp only the chrome calculation, never the scroller itself.
+    const position = Math.max(0, Math.min(limit, scroller.scrollTop));
+    const remaining = limit - position <= 1 ? 0 : limit - position;
+    footer.style.setProperty('--footer-offset', `${Math.min(footerHeight, remaining)}px`);
+    footer.classList.toggle('is-scroll-visible', remaining < footerHeight);
+  }
+
+  function scheduleFooter() {
+    if (frame === null) frame = requestAnimationFrame(updateFooter);
+  }
+
+  function measureFooter() {
+    footerHeight = footer.offsetHeight;
+    page.style.setProperty('--page-footer-height', `${footerHeight}px`);
+    scheduleFooter();
+  }
+
+  function updateLayout() {
+    const split = !!media && desktop.matches;
+    page.classList.toggle('native-project-columns', split);
+    if (split) media.append(spacer);
+    else page.insertBefore(spacer, footer);
+    measureFooter();
+  }
+
+  page.addEventListener('scroll', scheduleFooter, { passive: true });
+  media?.addEventListener('scroll', scheduleFooter, { passive: true });
+  desktop.addEventListener('change', updateLayout);
+  window.addEventListener('resize', scheduleFooter);
+  window.addEventListener('pageshow', scheduleFooter);
+  const observer = new ResizeObserver(measureFooter);
+  observer.observe(footer);
+  observer.observe(page.querySelector('main'));
+  media?.querySelectorAll('.project-lead-media, .project-gallery').forEach(element => observer.observe(element));
+  document.fonts?.ready.then(measureFooter);
+  updateLayout();
+}
 
 function initProjectTextScroll() {
   const panel = document.getElementById('projectInformation');
@@ -1386,38 +1280,64 @@ function initProjectTextScroll() {
   scrollbar.append(thumb);
   panel.parentElement.append(scrollbar);
 
-  const desktop = window.matchMedia('(min-width: 1000px)');
-  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+  const desktop = window.matchMedia(DESKTOP_QUERY);
+  const reducedMotion = window.matchMedia(REDUCED_MOTION_QUERY);
   const textColumn = panel.querySelector('.project-header');
   const mediaColumn = document.querySelector('.project-media');
   const gallery = document.querySelector('.project-gallery');
   const atBottom = () => panel.scrollHeight - panel.clientHeight - panel.scrollTop <= 2;
 
-  function update() {
+  function updatePositions() {
     // Measure the rendered columns: viewport formulas can drift when a
     // browser reserves space for scrollbars or the layout changes size.
     const textRect = textColumn.getBoundingClientRect();
     const mediaRect = (desktop.matches ? mediaColumn : gallery).getBoundingClientRect();
     document.documentElement.style.setProperty('--project-text-control-x', `${textRect.left + textRect.width / 2}px`);
     document.documentElement.style.setProperty('--project-media-control-x', `${mediaRect.left + mediaRect.width / 2}px`);
-    const scrollable = desktop.matches && panel.scrollHeight > panel.clientHeight + 2;
+  }
+
+  function update() {
+    // Read layout once before updating controls; avoid forced reflows per
+    // wheel event and do not remeasure horizontal alignment during scrolling.
+    const trackHeight = panel.clientHeight;
+    const scrollHeight = panel.scrollHeight;
+    const scrollTop = panel.scrollTop;
+    const scrollable = desktop.matches && scrollHeight > trackHeight + 2;
+    const bottom = scrollHeight - trackHeight - scrollTop <= 2;
     button.hidden = !scrollable;
     scrollbar.hidden = !scrollable;
     if (scrollable) {
-      const trackHeight = panel.clientHeight;
-      const thumbHeight = Math.max(24, trackHeight * trackHeight / panel.scrollHeight);
-      const progress = Math.max(0, Math.min(1, panel.scrollTop / (panel.scrollHeight - trackHeight)));
+      const thumbHeight = Math.max(24, trackHeight * trackHeight / scrollHeight);
+      const progress = Math.max(0, Math.min(1, scrollTop / (scrollHeight - trackHeight)));
       scrollbar.style.height = `${trackHeight}px`;
       thumb.style.height = `${thumbHeight}px`;
       thumb.style.transform = `translateY(${progress * (trackHeight - thumbHeight)}px)`;
     }
     panel.classList.toggle('is-text-scrollable', scrollable);
-    const label = atBottom() ? 'Scroll to top of project text' : 'Scroll to bottom of project text';
-    icon.querySelector('path').setAttribute('d', atBottom()
-      ? 'M10 17V3M5 8l5-5 5 5'
-      : 'M10 3v14M5 12l5 5 5-5');
-    button.setAttribute('aria-label', label);
-    button.title = label;
+    panel.classList.toggle('has-more-text', scrollable && !bottom);
+    panel.style.setProperty('--text-overflow-above', `${scrollTop <= 1 ? 0 : scrollTop}px`);
+    panel.style.setProperty('--text-overflow-remaining', `${bottom ? 0 : scrollHeight - trackHeight - scrollTop}px`);
+    const label = bottom ? 'Scroll to top of project text' : 'Scroll to bottom of project text';
+    if (button.getAttribute('aria-label') !== label) {
+      icon.querySelector('path').setAttribute('d', bottom
+        ? 'M10 17V3M5 8l5-5 5 5'
+        : 'M10 3v14M5 12l5 5 5-5');
+      button.setAttribute('aria-label', label);
+      button.title = label;
+    }
+  }
+
+  let updateFrame = null;
+  let positionsDirty = true;
+  function scheduleUpdate(layoutChanged = false) {
+    positionsDirty ||= layoutChanged;
+    if (updateFrame !== null) return;
+    updateFrame = requestAnimationFrame(() => {
+      updateFrame = null;
+      if (positionsDirty) updatePositions();
+      positionsDirty = false;
+      update();
+    });
   }
 
   button.addEventListener('click', () => {
@@ -1426,16 +1346,16 @@ function initProjectTextScroll() {
       behavior: reducedMotion.matches ? 'auto' : 'smooth',
     });
   });
-  panel.addEventListener('scroll', update, { passive: true });
-  desktop.addEventListener('change', update);
-  window.addEventListener('resize', update);
-  const observer = new ResizeObserver(update);
+  panel.addEventListener('scroll', () => scheduleUpdate(), { passive: true });
+  desktop.addEventListener('change', () => scheduleUpdate(true));
+  window.addEventListener('resize', () => scheduleUpdate(true));
+  const observer = new ResizeObserver(() => scheduleUpdate(true));
   observer.observe(panel);
   observer.observe(mediaColumn);
   observer.observe(gallery);
   panel.querySelectorAll('.project-header, .project-columns').forEach(element => observer.observe(element));
-  document.fonts.ready.then(update);
-  update();
+  document.fonts.ready.then(() => scheduleUpdate(true));
+  scheduleUpdate(true);
   initProjectTextDrag(panel, desktop);
 }
 
@@ -1473,7 +1393,9 @@ function initProjectTextDrag(panel, desktop) {
       return;
     }
     event.preventDefault();
-    panel.scrollTop = drag.startScroll + drag.startY - event.clientY;
+    const target = drag.startScroll + drag.startY - event.clientY;
+    const limit = panel.scrollHeight - panel.clientHeight;
+    panel.scrollTop = Math.max(0, Math.min(limit, target));
   });
 
   panel.addEventListener('pointerup', endDrag);
@@ -1483,36 +1405,60 @@ function initProjectTextDrag(panel, desktop) {
   desktop.addEventListener('change', endDrag);
 }
 
-includePartials()
-  .then(async () => {
-    initNavSearch();
+async function initSite() {
+  await includePartials();
+  initNavSearch();
 
-    await initContactLinks();
+  await initContactLinks();
 
-    markCurrentNavLink();
-    hideSearchOffIndex();
+  markCurrentNavLink();
+  hideSearchOffIndex();
 
-    initProjectSearch();
-    initPageEntrance();
-    initPageExitTransition();
-    initNavHeightSync();
-    initPageScrollbarSync();
+  initProjectSearch();
+  initPageExitTransition();
+  initNavHeightSync();
+  initNativeScrollLayout();
+  initPageScrollbarSync();
 
-    resetIndexScrollOnProjectReturn();
-    initScrollFadeIn();
-    initTouchRubberBand();
-    initProjectVideos();
+  resetIndexScrollOnProjectReturn();
+  initScrollFadeIn();
+  initProjectVideos();
 
-    initBackToTop();
-    initProjectTextScroll();
-  })
-  .catch((error) => {
-    console.error(
-      'Page initialisation failed:',
-      error
-    );
-  });
+  initBackToTop();
+  initProjectTextScroll();
+  // Avoid swapping font metrics halfway through the entrance, but never
+  // leave the page waiting indefinitely for a remote font server.
+  if (document.fonts) {
+    await Promise.race([
+      document.fonts.ready,
+      new Promise(resolve => window.setTimeout(resolve, 1000)),
+    ]);
+  }
+  initPageEntrance();
+}
 
-initSplashRotation();
-initSplashVideo();
-initSplashScrollTrigger();
+function handleInitialisationError(error) {
+  window.clearTimeout(window.pageEntranceFallback);
+  document.documentElement.classList.remove('page-loading');
+  document.querySelector('.site-nav')?.classList.add('is-visible');
+  document.querySelectorAll('.fade-in').forEach(element => element.classList.add('is-visible'));
+  console.error(
+    'Page initialisation failed:',
+    error
+  );
+}
+
+// Plain browser script in production; explicit exports let Node tests load the
+// actual implementation without slicing source text or starting the website.
+if (typeof module === 'object' && module.exports) {
+  module.exports = {
+    parseIni, isIndexPage, initNavSearch, initProjectSearch, markCurrentNavLink,
+    getMediaScrollTarget, initNativeScrollLayout, initBackToTop,
+    initSplashScrollTrigger, initProjectTextDrag, initProjectVideos,
+  };
+} else {
+  initSite().catch(handleInitialisationError);
+  initSplashRotation();
+  initSplashVideo();
+  initSplashScrollTrigger();
+}

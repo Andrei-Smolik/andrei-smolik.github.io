@@ -10,6 +10,14 @@
 
 <head>
   <meta charset="UTF-8" />
+  <script>
+    // Keep the splash visible; only the underlying page waits for setup.
+    document.documentElement.classList.add('page-loading');
+    window.pageEntranceFallback = window.setTimeout(() => {
+      document.documentElement.classList.remove('page-loading');
+      document.querySelectorAll('.fade-in').forEach(element => element.classList.add('is-visible'));
+    }, 4000);
+  </script>
 
   <meta
     name="viewport"
@@ -145,6 +153,7 @@
 
     <div data-include="nav.html?v={{ASSET_VERSION}}"></div>
 
+    <div class="page-content-frame">
     <main>
 
       <ul
@@ -184,6 +193,7 @@
       </ul>
 
     </main>
+    </div>
 
     <footer class="site-footer">
 

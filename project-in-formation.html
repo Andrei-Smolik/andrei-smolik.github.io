@@ -2,6 +2,14 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <script>
+    // Hide before the first paint, not after asynchronous navigation loads.
+    document.documentElement.classList.add('page-loading');
+    window.pageEntranceFallback = window.setTimeout(() => {
+      document.documentElement.classList.remove('page-loading');
+      document.querySelectorAll('.fade-in').forEach(element => element.classList.add('is-visible'));
+    }, 4000);
+  </script>
   <meta
     name="viewport"
     content="width=device-width, initial-scale=1.0"
@@ -22,7 +30,7 @@
 
   <link
   rel="stylesheet"
-  href="style.css?v=86299cdd2e"
+  href="style.css?v=50d7f24c14"
 />
 </head>
 
@@ -32,12 +40,13 @@
     class="page-scroll"
     id="pageScroll"
   >
-    <div data-include="nav.html?v=86299cdd2e"></div>
+    <div data-include="nav.html?v=50d7f24c14"></div>
 
+    <div class="page-content-frame">
     <main class="project">
 
       <div class="project-information-panel">
-      <div class="project-information" id="projectInformation" tabindex="0" role="region" aria-label="Project information">
+      <div class="project-information fade-in" id="projectInformation" tabindex="0" role="region" aria-label="Project information">
         <div class="project-header">
           <h1 class="project-title-line">
             <strong>In Formation</strong>
@@ -87,6 +96,8 @@
           <img
             src="images/in-formation/Enscape_2021-03-17-14-20-20-1800w.webp"
             srcset="images/in-formation/Enscape_2021-03-17-14-20-20-480w.webp 480w, images/in-formation/Enscape_2021-03-17-14-20-20-800w.webp 800w, images/in-formation/Enscape_2021-03-17-14-20-20-1200w.webp 1200w, images/in-formation/Enscape_2021-03-17-14-20-20-1800w.webp 1800w"
+            width="1920"
+            height="1080"
             sizes="(min-width: 1000px) 43vw, 80vw"
             alt=""
             decoding="async"
@@ -106,6 +117,8 @@
           <img
             src="images/in-formation/Enscape_2021-03-17-14-19-07-1800w.webp"
             srcset="images/in-formation/Enscape_2021-03-17-14-19-07-480w.webp 480w, images/in-formation/Enscape_2021-03-17-14-19-07-800w.webp 800w, images/in-formation/Enscape_2021-03-17-14-19-07-1200w.webp 1200w, images/in-formation/Enscape_2021-03-17-14-19-07-1800w.webp 1800w"
+            width="1920"
+            height="1080"
             sizes="(min-width: 1000px) 43vw, 80vw"
             alt=""
             loading="lazy"
@@ -123,6 +136,8 @@
           <img
             src="images/in-formation/Enscape_2021-03-17-14-21-24-1800w.webp"
             srcset="images/in-formation/Enscape_2021-03-17-14-21-24-480w.webp 480w, images/in-formation/Enscape_2021-03-17-14-21-24-800w.webp 800w, images/in-formation/Enscape_2021-03-17-14-21-24-1200w.webp 1200w, images/in-formation/Enscape_2021-03-17-14-21-24-1800w.webp 1800w"
+            width="1920"
+            height="1080"
             sizes="(min-width: 1000px) 43vw, 80vw"
             alt=""
             loading="lazy"
@@ -140,6 +155,8 @@
           <img
             src="images/in-formation/Enscape_2021-03-17-14-29-13-1800w.webp"
             srcset="images/in-formation/Enscape_2021-03-17-14-29-13-480w.webp 480w, images/in-formation/Enscape_2021-03-17-14-29-13-800w.webp 800w, images/in-formation/Enscape_2021-03-17-14-29-13-1200w.webp 1200w, images/in-formation/Enscape_2021-03-17-14-29-13-1800w.webp 1800w"
+            width="1920"
+            height="1080"
             sizes="(min-width: 1000px) 43vw, 80vw"
             alt=""
             loading="lazy"
@@ -157,6 +174,8 @@
           <img
             src="images/in-formation/Enscape_2021-03-17-15-19-34-1800w.webp"
             srcset="images/in-formation/Enscape_2021-03-17-15-19-34-480w.webp 480w, images/in-formation/Enscape_2021-03-17-15-19-34-800w.webp 800w, images/in-formation/Enscape_2021-03-17-15-19-34-1200w.webp 1200w, images/in-formation/Enscape_2021-03-17-15-19-34-1800w.webp 1800w"
+            width="1920"
+            height="1080"
             sizes="(min-width: 1000px) 43vw, 80vw"
             alt=""
             loading="lazy"
@@ -174,6 +193,8 @@
           <img
             src="images/in-formation/Z_Diagrams-1800w.webp"
             srcset="images/in-formation/Z_Diagrams-480w.webp 480w, images/in-formation/Z_Diagrams-800w.webp 800w, images/in-formation/Z_Diagrams-1200w.webp 1200w, images/in-formation/Z_Diagrams-1800w.webp 1800w"
+            width="4961"
+            height="3508"
             sizes="(min-width: 1000px) 43vw, 80vw"
             alt=""
             loading="lazy"
@@ -190,13 +211,14 @@
       </div>
 
     </main>
+    </div>
 
     <footer class="site-footer">
       <span>
         &copy;
         <span id="year"></span>
         <span data-site-name>ANDREI SMOLIK</span>
-        <span class="site-footer__version">(v0.5.3)</span>
+        <span class="site-footer__version">(v0.5.4)</span>
       </span>
     </footer>
   </div>
@@ -212,7 +234,7 @@
     <svg viewBox="0 0 20 20" aria-hidden="true" focusable="false"><path d="M10 17V3M5 8l5-5 5 5" /></svg>
   </button>
 
-  <script src="include-partials.js?v=86299cdd2e"></script>
+  <script src="include-partials.js?v=50d7f24c14"></script>
 
   <script>
     document.getElementById('year').textContent =

@@ -2,6 +2,14 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <script>
+    // Hide before the first paint, not after asynchronous navigation loads.
+    document.documentElement.classList.add('page-loading');
+    window.pageEntranceFallback = window.setTimeout(() => {
+      document.documentElement.classList.remove('page-loading');
+      document.querySelectorAll('.fade-in').forEach(element => element.classList.add('is-visible'));
+    }, 4000);
+  </script>
   <meta
     name="viewport"
     content="width=device-width, initial-scale=1.0"
@@ -22,7 +30,7 @@
 
   <link
   rel="stylesheet"
-  href="style.css?v=86299cdd2e"
+  href="style.css?v=50d7f24c14"
 />
 </head>
 
@@ -32,12 +40,13 @@
     class="page-scroll"
     id="pageScroll"
   >
-    <div data-include="nav.html?v=86299cdd2e"></div>
+    <div data-include="nav.html?v=50d7f24c14"></div>
 
+    <div class="page-content-frame">
     <main class="project">
 
       <div class="project-information-panel">
-      <div class="project-information" id="projectInformation" tabindex="0" role="region" aria-label="Project information">
+      <div class="project-information fade-in" id="projectInformation" tabindex="0" role="region" aria-label="Project information">
         <div class="project-header">
           <h1 class="project-title-line">
             <strong>DigitalFUTURES</strong>
@@ -85,6 +94,8 @@
           <img
             src="images/digitalfutures/IMG_3200-2-1800w.webp"
             srcset="images/digitalfutures/IMG_3200-2-480w.webp 480w, images/digitalfutures/IMG_3200-2-800w.webp 800w, images/digitalfutures/IMG_3200-2-1200w.webp 1200w, images/digitalfutures/IMG_3200-2-1800w.webp 1800w"
+            width="5042"
+            height="3361"
             sizes="(min-width: 1000px) 43vw, 80vw"
             alt=""
             decoding="async"
@@ -104,6 +115,8 @@
           <img
             src="images/digitalfutures/35736e14333a5287b2fdda6bca23cbe-1706w.webp"
             srcset="images/digitalfutures/35736e14333a5287b2fdda6bca23cbe-480w.webp 480w, images/digitalfutures/35736e14333a5287b2fdda6bca23cbe-800w.webp 800w, images/digitalfutures/35736e14333a5287b2fdda6bca23cbe-1200w.webp 1200w, images/digitalfutures/35736e14333a5287b2fdda6bca23cbe-1706w.webp 1706w"
+            width="1706"
+            height="1280"
             sizes="(min-width: 1000px) 43vw, 80vw"
             alt=""
             loading="lazy"
@@ -121,6 +134,8 @@
           <img
             src="images/digitalfutures/ChatGPT%20Image%20Sep%201%2C%202026%20at%2005_23_28%20AM-1537w.webp"
             srcset="images/digitalfutures/ChatGPT%20Image%20Sep%201%2C%202026%20at%2005_23_28%20AM-480w.webp 480w, images/digitalfutures/ChatGPT%20Image%20Sep%201%2C%202026%20at%2005_23_28%20AM-800w.webp 800w, images/digitalfutures/ChatGPT%20Image%20Sep%201%2C%202026%20at%2005_23_28%20AM-1200w.webp 1200w, images/digitalfutures/ChatGPT%20Image%20Sep%201%2C%202026%20at%2005_23_28%20AM-1537w.webp 1537w"
+            width="1537"
+            height="1023"
             sizes="(min-width: 1000px) 43vw, 80vw"
             alt=""
             loading="lazy"
@@ -138,6 +153,8 @@
           <img
             src="images/digitalfutures/IMG_3205-1800w.webp"
             srcset="images/digitalfutures/IMG_3205-480w.webp 480w, images/digitalfutures/IMG_3205-800w.webp 800w, images/digitalfutures/IMG_3205-1200w.webp 1200w, images/digitalfutures/IMG_3205-1800w.webp 1800w"
+            width="6000"
+            height="4000"
             sizes="(min-width: 1000px) 43vw, 80vw"
             alt=""
             loading="lazy"
@@ -155,6 +172,8 @@
           <img
             src="images/digitalfutures/Weixin%20Image_20230701113233-1800w.webp"
             srcset="images/digitalfutures/Weixin%20Image_20230701113233-480w.webp 480w, images/digitalfutures/Weixin%20Image_20230701113233-800w.webp 800w, images/digitalfutures/Weixin%20Image_20230701113233-1200w.webp 1200w, images/digitalfutures/Weixin%20Image_20230701113233-1800w.webp 1800w"
+            width="4032"
+            height="3024"
             sizes="(min-width: 1000px) 43vw, 80vw"
             alt=""
             loading="lazy"
@@ -172,6 +191,8 @@
           <img
             src="images/digitalfutures/Weixin%20Image_20230701113307-1800w.webp"
             srcset="images/digitalfutures/Weixin%20Image_20230701113307-480w.webp 480w, images/digitalfutures/Weixin%20Image_20230701113307-800w.webp 800w, images/digitalfutures/Weixin%20Image_20230701113307-1200w.webp 1200w, images/digitalfutures/Weixin%20Image_20230701113307-1800w.webp 1800w"
+            width="4096"
+            height="3072"
             sizes="(min-width: 1000px) 43vw, 80vw"
             alt=""
             loading="lazy"
@@ -189,6 +210,8 @@
           <img
             src="images/digitalfutures/Weixin%20Image_20230701113354-1706w.webp"
             srcset="images/digitalfutures/Weixin%20Image_20230701113354-480w.webp 480w, images/digitalfutures/Weixin%20Image_20230701113354-800w.webp 800w, images/digitalfutures/Weixin%20Image_20230701113354-1200w.webp 1200w, images/digitalfutures/Weixin%20Image_20230701113354-1706w.webp 1706w"
+            width="1706"
+            height="1280"
             sizes="(min-width: 1000px) 43vw, 80vw"
             alt=""
             loading="lazy"
@@ -206,6 +229,8 @@
           <img
             src="images/digitalfutures/Weixin%20Image_20230701113419-1800w.webp"
             srcset="images/digitalfutures/Weixin%20Image_20230701113419-480w.webp 480w, images/digitalfutures/Weixin%20Image_20230701113419-800w.webp 800w, images/digitalfutures/Weixin%20Image_20230701113419-1200w.webp 1200w, images/digitalfutures/Weixin%20Image_20230701113419-1800w.webp 1800w"
+            width="2912"
+            height="3024"
             sizes="(min-width: 1000px) 43vw, 80vw"
             alt=""
             loading="lazy"
@@ -223,6 +248,8 @@
           <img
             src="images/digitalfutures/Weixin%20Image_20230701113713-1800w.webp"
             srcset="images/digitalfutures/Weixin%20Image_20230701113713-480w.webp 480w, images/digitalfutures/Weixin%20Image_20230701113713-800w.webp 800w, images/digitalfutures/Weixin%20Image_20230701113713-1200w.webp 1200w, images/digitalfutures/Weixin%20Image_20230701113713-1800w.webp 1800w"
+            width="4096"
+            height="2304"
             sizes="(min-width: 1000px) 43vw, 80vw"
             alt=""
             loading="lazy"
@@ -240,6 +267,8 @@
           <img
             src="images/digitalfutures/Weixin%20Image_20230701113722-1800w.webp"
             srcset="images/digitalfutures/Weixin%20Image_20230701113722-480w.webp 480w, images/digitalfutures/Weixin%20Image_20230701113722-800w.webp 800w, images/digitalfutures/Weixin%20Image_20230701113722-1200w.webp 1200w, images/digitalfutures/Weixin%20Image_20230701113722-1800w.webp 1800w"
+            width="4096"
+            height="2304"
             sizes="(min-width: 1000px) 43vw, 80vw"
             alt=""
             loading="lazy"
@@ -256,13 +285,14 @@
       </div>
 
     </main>
+    </div>
 
     <footer class="site-footer">
       <span>
         &copy;
         <span id="year"></span>
         <span data-site-name>ANDREI SMOLIK</span>
-        <span class="site-footer__version">(v0.5.3)</span>
+        <span class="site-footer__version">(v0.5.4)</span>
       </span>
     </footer>
   </div>
@@ -278,7 +308,7 @@
     <svg viewBox="0 0 20 20" aria-hidden="true" focusable="false"><path d="M10 17V3M5 8l5-5 5 5" /></svg>
   </button>
 
-  <script src="include-partials.js?v=86299cdd2e"></script>
+  <script src="include-partials.js?v=50d7f24c14"></script>
 
   <script>
     document.getElementById('year').textContent =

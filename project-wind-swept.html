@@ -2,6 +2,14 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <script>
+    // Hide before the first paint, not after asynchronous navigation loads.
+    document.documentElement.classList.add('page-loading');
+    window.pageEntranceFallback = window.setTimeout(() => {
+      document.documentElement.classList.remove('page-loading');
+      document.querySelectorAll('.fade-in').forEach(element => element.classList.add('is-visible'));
+    }, 4000);
+  </script>
   <meta
     name="viewport"
     content="width=device-width, initial-scale=1.0"
@@ -22,7 +30,7 @@
 
   <link
   rel="stylesheet"
-  href="style.css?v=86299cdd2e"
+  href="style.css?v=50d7f24c14"
 />
 </head>
 
@@ -32,12 +40,13 @@
     class="page-scroll"
     id="pageScroll"
   >
-    <div data-include="nav.html?v=86299cdd2e"></div>
+    <div data-include="nav.html?v=50d7f24c14"></div>
 
+    <div class="page-content-frame">
     <main class="project">
 
       <div class="project-information-panel">
-      <div class="project-information" id="projectInformation" tabindex="0" role="region" aria-label="Project information">
+      <div class="project-information fade-in" id="projectInformation" tabindex="0" role="region" aria-label="Project information">
         <div class="project-header">
           <h1 class="project-title-line">
             <strong>Wind Swept</strong>
@@ -95,6 +104,8 @@
           <img
             src="images/wind-swept/ALKIMOS_COLLEGE-8024-1800w.webp"
             srcset="images/wind-swept/ALKIMOS_COLLEGE-8024-480w.webp 480w, images/wind-swept/ALKIMOS_COLLEGE-8024-800w.webp 800w, images/wind-swept/ALKIMOS_COLLEGE-8024-1200w.webp 1200w, images/wind-swept/ALKIMOS_COLLEGE-8024-1800w.webp 1800w"
+            width="6324"
+            height="4216"
             sizes="(min-width: 1000px) 43vw, 80vw"
             alt=""
             decoding="async"
@@ -114,6 +125,8 @@
           <img
             src="images/wind-swept/ALKIMOS_COLLEGE-7955-SQ-1800w.webp"
             srcset="images/wind-swept/ALKIMOS_COLLEGE-7955-SQ-480w.webp 480w, images/wind-swept/ALKIMOS_COLLEGE-7955-SQ-800w.webp 800w, images/wind-swept/ALKIMOS_COLLEGE-7955-SQ-1200w.webp 1200w, images/wind-swept/ALKIMOS_COLLEGE-7955-SQ-1800w.webp 1800w"
+            width="4480"
+            height="4480"
             sizes="(min-width: 1000px) 43vw, 80vw"
             alt=""
             loading="lazy"
@@ -131,6 +144,8 @@
           <img
             src="images/wind-swept/ALKIMOS_COLLEGE-7998-1800w.webp"
             srcset="images/wind-swept/ALKIMOS_COLLEGE-7998-480w.webp 480w, images/wind-swept/ALKIMOS_COLLEGE-7998-800w.webp 800w, images/wind-swept/ALKIMOS_COLLEGE-7998-1200w.webp 1200w, images/wind-swept/ALKIMOS_COLLEGE-7998-1800w.webp 1800w"
+            width="6703"
+            height="4297"
             sizes="(min-width: 1000px) 43vw, 80vw"
             alt=""
             loading="lazy"
@@ -148,6 +163,8 @@
           <img
             src="images/wind-swept/ALKIMOS_COLLEGE-8016-1800w.webp"
             srcset="images/wind-swept/ALKIMOS_COLLEGE-8016-480w.webp 480w, images/wind-swept/ALKIMOS_COLLEGE-8016-800w.webp 800w, images/wind-swept/ALKIMOS_COLLEGE-8016-1200w.webp 1200w, images/wind-swept/ALKIMOS_COLLEGE-8016-1800w.webp 1800w"
+            width="4480"
+            height="6720"
             sizes="(min-width: 1000px) 43vw, 80vw"
             alt=""
             loading="lazy"
@@ -165,6 +182,8 @@
           <img
             src="images/wind-swept/ALKIMOS_COLLEGE-8332-1800w.webp"
             srcset="images/wind-swept/ALKIMOS_COLLEGE-8332-480w.webp 480w, images/wind-swept/ALKIMOS_COLLEGE-8332-800w.webp 800w, images/wind-swept/ALKIMOS_COLLEGE-8332-1200w.webp 1200w, images/wind-swept/ALKIMOS_COLLEGE-8332-1800w.webp 1800w"
+            width="6122"
+            height="3444"
             sizes="(min-width: 1000px) 43vw, 80vw"
             alt=""
             loading="lazy"
@@ -182,6 +201,8 @@
           <img
             src="images/wind-swept/ALKIMOS_COLLEGE-8431-1800w.webp"
             srcset="images/wind-swept/ALKIMOS_COLLEGE-8431-480w.webp 480w, images/wind-swept/ALKIMOS_COLLEGE-8431-800w.webp 800w, images/wind-swept/ALKIMOS_COLLEGE-8431-1200w.webp 1200w, images/wind-swept/ALKIMOS_COLLEGE-8431-1800w.webp 1800w"
+            width="6720"
+            height="4480"
             sizes="(min-width: 1000px) 43vw, 80vw"
             alt=""
             loading="lazy"
@@ -199,6 +220,8 @@
           <img
             src="images/wind-swept/ALKIMOS_COLLEGE-8443-1800w.webp"
             srcset="images/wind-swept/ALKIMOS_COLLEGE-8443-480w.webp 480w, images/wind-swept/ALKIMOS_COLLEGE-8443-800w.webp 800w, images/wind-swept/ALKIMOS_COLLEGE-8443-1200w.webp 1200w, images/wind-swept/ALKIMOS_COLLEGE-8443-1800w.webp 1800w"
+            width="6720"
+            height="4480"
             sizes="(min-width: 1000px) 43vw, 80vw"
             alt=""
             loading="lazy"
@@ -216,6 +239,8 @@
           <img
             src="images/wind-swept/VERMEY_ALKIMOS_COLLEGE-11-1800w.webp"
             srcset="images/wind-swept/VERMEY_ALKIMOS_COLLEGE-11-480w.webp 480w, images/wind-swept/VERMEY_ALKIMOS_COLLEGE-11-800w.webp 800w, images/wind-swept/VERMEY_ALKIMOS_COLLEGE-11-1200w.webp 1200w, images/wind-swept/VERMEY_ALKIMOS_COLLEGE-11-1800w.webp 1800w"
+            width="6636"
+            height="4391"
             sizes="(min-width: 1000px) 43vw, 80vw"
             alt=""
             loading="lazy"
@@ -233,6 +258,8 @@
           <img
             src="images/wind-swept/VERMEY_ALKIMOS_COLLEGE-5-1800w.webp"
             srcset="images/wind-swept/VERMEY_ALKIMOS_COLLEGE-5-480w.webp 480w, images/wind-swept/VERMEY_ALKIMOS_COLLEGE-5-800w.webp 800w, images/wind-swept/VERMEY_ALKIMOS_COLLEGE-5-1200w.webp 1200w, images/wind-swept/VERMEY_ALKIMOS_COLLEGE-5-1800w.webp 1800w"
+            width="4428"
+            height="6070"
             sizes="(min-width: 1000px) 43vw, 80vw"
             alt=""
             loading="lazy"
@@ -250,6 +277,8 @@
           <img
             src="images/wind-swept/_MG_1711-1800w.webp"
             srcset="images/wind-swept/_MG_1711-480w.webp 480w, images/wind-swept/_MG_1711-800w.webp 800w, images/wind-swept/_MG_1711-1200w.webp 1200w, images/wind-swept/_MG_1711-1800w.webp 1800w"
+            width="3648"
+            height="5472"
             sizes="(min-width: 1000px) 43vw, 80vw"
             alt=""
             loading="lazy"
@@ -266,13 +295,14 @@
       </div>
 
     </main>
+    </div>
 
     <footer class="site-footer">
       <span>
         &copy;
         <span id="year"></span>
         <span data-site-name>ANDREI SMOLIK</span>
-        <span class="site-footer__version">(v0.5.3)</span>
+        <span class="site-footer__version">(v0.5.4)</span>
       </span>
     </footer>
   </div>
@@ -288,7 +318,7 @@
     <svg viewBox="0 0 20 20" aria-hidden="true" focusable="false"><path d="M10 17V3M5 8l5-5 5 5" /></svg>
   </button>
 
-  <script src="include-partials.js?v=86299cdd2e"></script>
+  <script src="include-partials.js?v=50d7f24c14"></script>
 
   <script>
     document.getElementById('year').textContent =

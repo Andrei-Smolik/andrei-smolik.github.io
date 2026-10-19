@@ -2,7 +2,7 @@
    style.css
    ========================================================================== */
 
-@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;1,9..144,400;1,9..144,500&family=IBM+Plex+Mono:wght@400;500;700&family=Inter:wght@400;500;600&family=Jost:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;1,9..144,400;1,9..144,500&family=IBM+Plex+Mono:wght@400;500;700&family=Inter:wght@400;500;600&family=Jost:wght@300;400;500&display=swap');
 
 /* --------------------------------------------------------------------------
    Variables
@@ -16,6 +16,8 @@
   --line: #dbd9d1;
   --accent: #1f3a93;
   --nav-hover: #3569d4;
+  --reveal-duration: 1.2s;
+  --reveal-easing: ease-in-out;
 
   --font-display:
     'Fraunces',
@@ -42,15 +44,14 @@
 
   --nav-height: 5.5rem;
   --nav-search-height: 1.6rem;
-  --nav-link-gap: 0.5rem;
-  --nav-content-gap: calc(var(--nav-link-gap) * 4);
+  /* Independent navbar spacing controls. */
+  --nav-content-gap: 2rem; /* Divider to grid/project content; main's CSS default. */
+  --nav-outer-gap: 1.35rem; /* Above the name and below the links. */
+  --nav-name-links-gap: 0.2rem; /* Name to navigation links. */
   --project-column-gap: clamp(1.5rem, 3vw, 3rem);
   --scroll-control-bottom: calc(clamp(1.25rem, 3vw, 2rem) + var(--nav-search-height) * 1.5);
 
-  --content-gap:
-    calc(
-      var(--nav-link-gap) * 4.2
-    );
+  --content-gap: 2.1rem;
 
   --content-gap-lg:
     calc(
@@ -119,6 +120,12 @@
 html {
   height: 100%;
   color-scheme: light;
+}
+
+/* Keep root/navigation stationary. Individual scrollports own native bounce. */
+html,
+body {
+  overscroll-behavior-y: none;
 }
 
 body {
@@ -196,18 +203,16 @@ button {
   min-height: 4.75rem;
 
   padding:
-    1rem
+    var(--nav-outer-gap)
     0
-    var(--nav-link-gap);
+    var(--nav-outer-gap);
 
   background: var(--paper);
   text-align: center;
 
-  opacity: 0;
-  pointer-events: none;
-
-  transform:
-    translateY(-14px);
+  opacity: 1;
+  pointer-events: auto;
+  transform: none;
 
   transition:
     opacity 0.7s ease,
@@ -241,8 +246,10 @@ button {
 }
 
 .site-nav__name {
-  display: block;
-  margin-bottom: 0.2rem;
+  display: inline-block;
+  padding: 0.15em 0.4em;
+  border-radius: 999px;
+  margin-bottom: var(--nav-name-links-gap);
 
   color: var(--ink);
 
@@ -253,18 +260,20 @@ button {
     'Segoe UI',
     sans-serif;
 
-  font-size: var(--step-1);
+  font-size: calc(var(--step-1) * 1.5);
   font-weight: 400;
   letter-spacing: 0.06em;
   line-height: 1.2;
 
   transition:
-    color 0.25s ease;
+    color 0.2s ease, transform 0.2s ease, opacity 0.2s ease;
 }
 
 .site-nav__name:hover,
 .site-nav__name:focus-visible {
-  color: var(--nav-hover);
+  color: #000;
+  transform: scale(1.02);
+  opacity: 0.4;
 }
 
 .site-nav__links {
@@ -282,53 +291,55 @@ button {
 
   gap: 0.75rem;
 
-  overflow: hidden;
+  overflow: visible;
   opacity: 1;
 
   transition:
     opacity 0.25s ease;
 }
 
-.site-nav__separator {
-  color: #333333;
-  font-size: 0.75rem;
-}
-
 .site-nav__link {
+  display: inline-block;
   color: #333333;
+  padding: 0.2em 0.55em;
+  border-radius: 999px;
 
-  font-family: var(--font-mono);
-  font-size: 0.75rem;
-  letter-spacing: 0.06em;
+  font-family: 'Jost', 'Futura', sans-serif;
+  font-size: 1rem;
+  font-weight: 300;
+  letter-spacing: 0.073em;
   text-transform: uppercase;
   white-space: nowrap;
 }
 
-/* Remove this rule to show
-   the About link again. */
-
-.site-nav__link--about,
-.site-nav__separator--about {
-  display: none;
-}
-
 .site-nav__link:not([aria-disabled="true"]):hover,
 .site-nav__link:not([aria-disabled="true"]):focus-visible {
-  color: var(--nav-hover);
+  color: #000;
+  transform: scale(1.05);
+  opacity: 0.4;
 }
 
-/* Navigation links fade to blue-grey without an underline. */
+/* Scale and fade navigation links without shifting neighbouring items. */
 
 .site-nav
 a:not(.site-nav__name) {
   text-decoration: none;
 
   transition:
-    color 0.2s ease;
+    color 0.2s ease, transform 0.2s ease, opacity 0.2s ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .site-nav .site-nav__name,
+  .site-nav a.site-nav__link {
+    transition: none;
+  }
 }
 
 .site-nav .site-nav__link[aria-current] {
-  font-weight: 700;
+  font-weight: 300;
+  text-decoration: none;
+  opacity: 0.6;
   cursor: default;
   pointer-events: none;
 }
@@ -411,7 +422,9 @@ a:not(.site-nav__name) {
 
   transition:
     opacity 0.25s ease,
-    color 0.2s ease;
+    color 0.2s ease,
+    background-color 0.2s ease,
+    border-color 0.2s ease;
 }
 
 .site-nav__search-icon {
@@ -421,11 +434,6 @@ a:not(.site-nav__name) {
   stroke: currentColor;
   stroke-width: 1.75;
   stroke-linecap: round;
-}
-
-.site-nav__search-label:hover,
-.site-nav__search-label:focus-visible {
-  color: var(--nav-hover);
 }
 
 .site-nav__links.is-searching
@@ -566,7 +574,7 @@ a:not(.site-nav__name) {
     touch;
 
   overscroll-behavior-y:
-    none;
+    contain;
 
 
   scroll-padding-top:
@@ -580,19 +588,22 @@ a:not(.site-nav__name) {
   overflow-y: hidden;
 }
 
-main.is-rubberband-active {
-  transition: none;
-
-  transform:
-    translateY(
-      var(--rubberband-offset, 0px)
-    ) !important;
+/* One opacity animation for the entire first screen: text, media, navbar,
+   and footer. This wrapper is separate from the overscroll transforms. */
+.page-scroll {
+  opacity: 1;
+  transition: opacity var(--reveal-duration) var(--reveal-easing);
 }
 
-main.is-rubberband-releasing {
-  transition:
-    transform 0.45s
-    cubic-bezier(0.22, 1, 0.36, 1);
+.page-loading .page-scroll,
+.page-loading .project-text-scroll {
+  opacity: 0;
+  pointer-events: none;
+  transition: none;
+}
+
+.page-loading .site-nav {
+  pointer-events: none;
 }
 
 .page-scroll main {
@@ -603,6 +614,15 @@ main.is-rubberband-releasing {
       var(--nav-height) +
       var(--nav-content-gap)
     );
+}
+
+/* Keep the content's layout bounds separate from the navigation/footer. */
+.page-content-frame {
+  display: flex;
+  flex-direction: column;
+  flex: 1 0 auto;
+  min-width: 0;
+  overflow: clip;
 }
 
 main {
@@ -647,19 +667,40 @@ main {
   background: #000000;
 }
 
+/* The spacer preserves the footer's original place in the document. The
+   footer itself is fixed, so native elastic overscroll cannot pull it around. */
+.page-footer-space {
+  height: var(--page-footer-height, 3.625rem);
+  flex: 0 0 var(--page-footer-height, 3.625rem);
+}
+
+.native-scroll-layout > .site-footer {
+  position: fixed;
+  inset: auto var(--page-scrollbar-width, 0px) 0 0;
+  z-index: 35;
+  background: var(--paper);
+  transform: translateY(var(--footer-offset, 100%));
+  visibility: hidden;
+}
+
+.native-scroll-layout > .site-footer.is-scroll-visible {
+  visibility: visible;
+}
+
 /* --------------------------------------------------------------------------
    Scroll fade-in
    -------------------------------------------------------------------------- */
 
 .fade-in {
   opacity: 0;
+  transform: none;
+  transition: opacity var(--reveal-duration) var(--reveal-easing);
+}
 
-  transform:
-    translateY(28px);
-
-  transition:
-    opacity 1.2s ease,
-    transform 1.2s ease;
+.fade-in.is-page-initial {
+  opacity: 1;
+  transform: none;
+  transition: none;
 }
 
 .fade-in.is-visible {
@@ -679,7 +720,6 @@ main {
    Page transitions
    -------------------------------------------------------------------------- */
 
-main.page-enter,
 main.page-leaving {
   opacity: 0;
 
@@ -688,9 +728,12 @@ main.page-leaving {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  main {
+  main,
+  .page-scroll,
+  .project-text-scroll {
     transition: none;
   }
+
 }
 
 /* --------------------------------------------------------------------------
@@ -932,6 +975,7 @@ body:has(.splash) {
 .splash__cta svg,
 .back-to-top svg,
 .project-text-scroll svg,
+.site-nav__search-label svg,
 .site-nav__search-close svg {
   display: block;
   width: 16px;
@@ -1058,12 +1102,6 @@ body:has(.splash) {
 }
 
 @media (min-width: 900px) {
-  body:has(.project-grid) {
-    /* Three square columns, with room for 2.5 rows and two 20px gaps. */
-    --grid-height-width: calc((100svh - var(--nav-height) - var(--nav-content-gap) - 40px) * 1.2 + 40px);
-    --gutter: max(var(--gutter-landscape), calc((100vw - var(--page-scrollbar-width, 0px) - var(--grid-height-width)) / 2));
-  }
-
   .project-grid {
     grid-template-columns:
       repeat(
@@ -1242,6 +1280,8 @@ main.project {
   grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
   align-items: start;
   gap: var(--project-column-gap);
+  /* Clip media to the content frame without creating another scroller. */
+  overflow: clip;
 
   padding-top:
     calc(
@@ -1263,11 +1303,71 @@ main.project {
   max-height: calc(100svh - var(--nav-height) - var(--nav-content-gap) - clamp(1.5rem, 6vw, 4rem) - 3.625rem - 3rem);
   min-width: 0;
   overflow-y: auto;
-  overscroll-behavior-y: none;
+  overscroll-behavior-y: contain;
   padding-inline-end: 2rem;
   scrollbar-gutter: stable;
   scrollbar-width: thin;
   scrollbar-color: transparent transparent;
+}
+
+@media (min-width: 1000px) {
+  /* Each column has one browser-owned scrolling/momentum timeline. No
+     wheel interception, synthetic translations, or page-scroll hand-off. */
+  .native-project-columns {
+    overflow: hidden;
+  }
+
+  .native-project-columns .page-content-frame {
+    flex: 1 1 auto;
+    min-height: 0;
+    height: 100%;
+  }
+
+  .native-project-columns main.project {
+    flex: 1 1 auto;
+    min-height: 0;
+    height: 100%;
+    padding-bottom: 0;
+  }
+
+  .native-project-columns .project-information-panel {
+    position: relative;
+    top: auto;
+  }
+
+  .native-project-columns .project-media {
+    height: 100svh;
+    margin-top: calc(-1 * (var(--nav-height) + var(--nav-content-gap)));
+    padding-top: calc(var(--nav-height) + var(--nav-content-gap));
+    overflow-y: auto;
+    overscroll-behavior-y: contain;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    align-content: start;
+    grid-auto-rows: max-content;
+  }
+
+  .native-project-columns .project-media::-webkit-scrollbar {
+    display: none;
+  }
+
+  .native-project-columns .project-media > .page-footer-space {
+    margin-top: calc(clamp(1.5rem, 6vw, 4rem) - var(--image-gap));
+  }
+
+  .project-information.is-text-scrollable {
+    /* Each edge fades only while content extends beyond it. Grow/shrink
+       smoothly near the ends, up to 8% of the text viewport at each edge. */
+    --text-edge-mask: linear-gradient(
+      to bottom,
+      transparent 0,
+      #000 min(8%, var(--text-overflow-above, 0px)),
+      #000 calc(100% - min(8%, var(--text-overflow-remaining, 0px))),
+      transparent 100%
+    );
+    -webkit-mask-image: var(--text-edge-mask);
+    mask-image: var(--text-edge-mask);
+  }
 }
 
 @media (hover: hover) and (pointer: fine) and (min-width: 1000px) {
@@ -1352,7 +1452,7 @@ main.project {
   color: var(--ink-soft);
   font: 0.9rem/1 var(--font-mono);
   cursor: pointer;
-  transition: color 0.2s ease, border-color 0.2s ease;
+  transition: opacity var(--reveal-duration) var(--reveal-easing), color 0.2s ease, border-color 0.2s ease;
 }
 
 .project-text-scroll[hidden] {
@@ -1780,6 +1880,7 @@ main.project {
 .splash__cta,
 .back-to-top,
 .project-text-scroll,
+.site-nav__search-label,
 .site-nav__search-close {
   width: var(--nav-search-height);
   height: var(--nav-search-height);
@@ -1790,17 +1891,52 @@ main.project {
   color: #000;
 }
 
+.site-nav__search-label {
+  border-color: transparent;
+  background: transparent;
+}
+
 .splash__cta:hover,
 .splash__cta:focus-visible,
 .back-to-top:hover,
 .back-to-top:focus-visible,
 .project-text-scroll:hover,
 .project-text-scroll:focus-visible,
-.site-nav__search-close:hover,
+.site-nav__search-label:focus-visible,
 .site-nav__search-close:focus-visible {
-  background: var(--nav-hover);
+  background: #000;
   border-color: transparent;
   color: #fff;
+}
+
+/* Touch browsers can retain :hover after a tap. Search hover fill is only
+   for a real hovering pointer; keyboard focus keeps its visible feedback. */
+@media (hover: hover) and (pointer: fine) {
+  .site-nav__search-label:hover,
+  .site-nav__search-close:hover {
+    background: #000;
+    border-color: transparent;
+    color: #fff;
+  }
+}
+
+/* About portrait: square crop, capped by the available viewport height. */
+.about-page .project-lead-media > .project-image:first-child {
+  width: min(100%, max(12rem, calc(100svh - var(--nav-height) - var(--nav-content-gap) - 5rem)));
+  height: auto;
+  aspect-ratio: 1;
+  justify-self: center;
+  margin-inline: auto;
+  overflow: hidden;
+}
+
+.about-page .project-lead-media > .project-image:first-child img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+  object-position: center 35%;
 }
 
 body:has(main.project) .back-to-top {
@@ -1818,7 +1954,9 @@ body.is-page-leaving .project-text-scroll {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .back-to-top {
+  .back-to-top,
+  .project-text-scroll,
+  .site-nav {
     transition: none;
   }
 
@@ -1826,5 +1964,11 @@ body.is-page-leaving .project-text-scroll {
   body.is-page-leaving .back-to-top,
   body.is-page-leaving .project-text-scroll {
     transition: none;
+  }
+
+  .page-scroll,
+  .native-project-columns .project-media,
+  .project-information {
+    overscroll-behavior-y: none;
   }
 }

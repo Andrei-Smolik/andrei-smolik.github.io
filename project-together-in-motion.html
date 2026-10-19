@@ -2,6 +2,14 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <script>
+    // Hide before the first paint, not after asynchronous navigation loads.
+    document.documentElement.classList.add('page-loading');
+    window.pageEntranceFallback = window.setTimeout(() => {
+      document.documentElement.classList.remove('page-loading');
+      document.querySelectorAll('.fade-in').forEach(element => element.classList.add('is-visible'));
+    }, 4000);
+  </script>
   <meta
     name="viewport"
     content="width=device-width, initial-scale=1.0"
@@ -22,7 +30,7 @@
 
   <link
   rel="stylesheet"
-  href="style.css?v=86299cdd2e"
+  href="style.css?v=50d7f24c14"
 />
 </head>
 
@@ -32,12 +40,13 @@
     class="page-scroll"
     id="pageScroll"
   >
-    <div data-include="nav.html?v=86299cdd2e"></div>
+    <div data-include="nav.html?v=50d7f24c14"></div>
 
+    <div class="page-content-frame">
     <main class="project">
 
       <div class="project-information-panel">
-      <div class="project-information" id="projectInformation" tabindex="0" role="region" aria-label="Project information">
+      <div class="project-information fade-in" id="projectInformation" tabindex="0" role="region" aria-label="Project information">
         <div class="project-header">
           <h1 class="project-title-line">
             <strong>Together In Motion</strong>
@@ -91,6 +100,8 @@
           <img
             src="images/together-in-motion/Esplanade_Day__2%20-%20Photo_Edited-1800w.webp"
             srcset="images/together-in-motion/Esplanade_Day__2%20-%20Photo_Edited-480w.webp 480w, images/together-in-motion/Esplanade_Day__2%20-%20Photo_Edited-800w.webp 800w, images/together-in-motion/Esplanade_Day__2%20-%20Photo_Edited-1200w.webp 1200w, images/together-in-motion/Esplanade_Day__2%20-%20Photo_Edited-1800w.webp 1800w"
+            width="3840"
+            height="2160"
             sizes="(min-width: 1000px) 43vw, 80vw"
             alt=""
             decoding="async"
@@ -110,6 +121,8 @@
           <img
             src="images/together-in-motion/Diagrams_Z_Dancing%20Diagram-1800w.webp"
             srcset="images/together-in-motion/Diagrams_Z_Dancing%20Diagram-480w.webp 480w, images/together-in-motion/Diagrams_Z_Dancing%20Diagram-800w.webp 800w, images/together-in-motion/Diagrams_Z_Dancing%20Diagram-1200w.webp 1200w, images/together-in-motion/Diagrams_Z_Dancing%20Diagram-1800w.webp 1800w"
+            width="3508"
+            height="2480"
             sizes="(min-width: 1000px) 43vw, 80vw"
             alt=""
             loading="lazy"
@@ -127,6 +140,8 @@
           <img
             src="images/together-in-motion/Diagrams_Z_Iteration%20Diagram-1800w.webp"
             srcset="images/together-in-motion/Diagrams_Z_Iteration%20Diagram-480w.webp 480w, images/together-in-motion/Diagrams_Z_Iteration%20Diagram-800w.webp 800w, images/together-in-motion/Diagrams_Z_Iteration%20Diagram-1200w.webp 1200w, images/together-in-motion/Diagrams_Z_Iteration%20Diagram-1800w.webp 1800w"
+            width="3508"
+            height="2480"
             sizes="(min-width: 1000px) 43vw, 80vw"
             alt=""
             loading="lazy"
@@ -144,6 +159,8 @@
           <img
             src="images/together-in-motion/Esplanade_Day__1%20-%20Photo_Edited-1800w.webp"
             srcset="images/together-in-motion/Esplanade_Day__1%20-%20Photo_Edited-480w.webp 480w, images/together-in-motion/Esplanade_Day__1%20-%20Photo_Edited-800w.webp 800w, images/together-in-motion/Esplanade_Day__1%20-%20Photo_Edited-1200w.webp 1200w, images/together-in-motion/Esplanade_Day__1%20-%20Photo_Edited-1800w.webp 1800w"
+            width="3840"
+            height="2160"
             sizes="(min-width: 1000px) 43vw, 80vw"
             alt=""
             loading="lazy"
@@ -161,6 +178,8 @@
           <img
             src="images/together-in-motion/Esplanade_Day__5%20-%20Photo_Edited-1800w.webp"
             srcset="images/together-in-motion/Esplanade_Day__5%20-%20Photo_Edited-480w.webp 480w, images/together-in-motion/Esplanade_Day__5%20-%20Photo_Edited-800w.webp 800w, images/together-in-motion/Esplanade_Day__5%20-%20Photo_Edited-1200w.webp 1200w, images/together-in-motion/Esplanade_Day__5%20-%20Photo_Edited-1800w.webp 1800w"
+            width="3840"
+            height="2160"
             sizes="(min-width: 1000px) 43vw, 80vw"
             alt=""
             loading="lazy"
@@ -178,6 +197,8 @@
           <img
             src="images/together-in-motion/Esplanade_Day__6%20-%20Photo_Edited-1800w.webp"
             srcset="images/together-in-motion/Esplanade_Day__6%20-%20Photo_Edited-480w.webp 480w, images/together-in-motion/Esplanade_Day__6%20-%20Photo_Edited-800w.webp 800w, images/together-in-motion/Esplanade_Day__6%20-%20Photo_Edited-1200w.webp 1200w, images/together-in-motion/Esplanade_Day__6%20-%20Photo_Edited-1800w.webp 1800w"
+            width="3840"
+            height="2160"
             sizes="(min-width: 1000px) 43vw, 80vw"
             alt=""
             loading="lazy"
@@ -195,6 +216,8 @@
           <img
             src="images/together-in-motion/Esplanade_Night__11%20-%20Photo_Edited-1800w.webp"
             srcset="images/together-in-motion/Esplanade_Night__11%20-%20Photo_Edited-480w.webp 480w, images/together-in-motion/Esplanade_Night__11%20-%20Photo_Edited-800w.webp 800w, images/together-in-motion/Esplanade_Night__11%20-%20Photo_Edited-1200w.webp 1200w, images/together-in-motion/Esplanade_Night__11%20-%20Photo_Edited-1800w.webp 1800w"
+            width="3840"
+            height="2160"
             sizes="(min-width: 1000px) 43vw, 80vw"
             alt=""
             loading="lazy"
@@ -212,6 +235,8 @@
           <img
             src="images/together-in-motion/Esplanade_Night__12%20-%20Photo_Edited-1800w.webp"
             srcset="images/together-in-motion/Esplanade_Night__12%20-%20Photo_Edited-480w.webp 480w, images/together-in-motion/Esplanade_Night__12%20-%20Photo_Edited-800w.webp 800w, images/together-in-motion/Esplanade_Night__12%20-%20Photo_Edited-1200w.webp 1200w, images/together-in-motion/Esplanade_Night__12%20-%20Photo_Edited-1800w.webp 1800w"
+            width="3840"
+            height="2160"
             sizes="(min-width: 1000px) 43vw, 80vw"
             alt=""
             loading="lazy"
@@ -229,6 +254,8 @@
           <img
             src="images/together-in-motion/Z_Construction%20Diagram-1800w.webp"
             srcset="images/together-in-motion/Z_Construction%20Diagram-480w.webp 480w, images/together-in-motion/Z_Construction%20Diagram-800w.webp 800w, images/together-in-motion/Z_Construction%20Diagram-1200w.webp 1200w, images/together-in-motion/Z_Construction%20Diagram-1800w.webp 1800w"
+            width="5514"
+            height="3417"
             sizes="(min-width: 1000px) 43vw, 80vw"
             alt=""
             loading="lazy"
@@ -246,6 +273,8 @@
           <img
             src="images/together-in-motion/Z_Diagram-1096w.webp"
             srcset="images/together-in-motion/Z_Diagram-480w.webp 480w, images/together-in-motion/Z_Diagram-800w.webp 800w, images/together-in-motion/Z_Diagram-1096w.webp 1096w"
+            width="1096"
+            height="1038"
             sizes="(min-width: 1000px) 43vw, 80vw"
             alt=""
             loading="lazy"
@@ -262,13 +291,14 @@
       </div>
 
     </main>
+    </div>
 
     <footer class="site-footer">
       <span>
         &copy;
         <span id="year"></span>
         <span data-site-name>ANDREI SMOLIK</span>
-        <span class="site-footer__version">(v0.5.3)</span>
+        <span class="site-footer__version">(v0.5.4)</span>
       </span>
     </footer>
   </div>
@@ -284,7 +314,7 @@
     <svg viewBox="0 0 20 20" aria-hidden="true" focusable="false"><path d="M10 17V3M5 8l5-5 5 5" /></svg>
   </button>
 
-  <script src="include-partials.js?v=86299cdd2e"></script>
+  <script src="include-partials.js?v=50d7f24c14"></script>
 
   <script>
     document.getElementById('year').textContent =

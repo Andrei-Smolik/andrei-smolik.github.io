@@ -3,6 +3,14 @@
 
 <head>
   <meta charset="UTF-8" />
+  <script>
+    // Keep the splash visible; only the underlying page waits for setup.
+    document.documentElement.classList.add('page-loading');
+    window.pageEntranceFallback = window.setTimeout(() => {
+      document.documentElement.classList.remove('page-loading');
+      document.querySelectorAll('.fade-in').forEach(element => element.classList.add('is-visible'));
+    }, 4000);
+  </script>
 
   <meta
     name="viewport"
@@ -24,7 +32,7 @@
 
   <link
     rel="stylesheet"
-    href="style.css?v=86299cdd2e"
+    href="style.css?v=50d7f24c14"
   />
 </head>
 
@@ -125,8 +133,9 @@
     id="pageScroll"
   >
 
-    <div data-include="nav.html?v=86299cdd2e"></div>
+    <div data-include="nav.html?v=50d7f24c14"></div>
 
+    <div class="page-content-frame">
     <main>
 
       <ul
@@ -436,6 +445,7 @@
       </ul>
 
     </main>
+    </div>
 
     <footer class="site-footer">
 
@@ -446,7 +456,7 @@
           ANDREI SMOLIK
         </span>
         <span class="site-footer__version">
-          (v0.5.3)
+          (v0.5.4)
         </span>
       </span>
 
@@ -465,7 +475,7 @@
     <svg viewBox="0 0 20 20" aria-hidden="true" focusable="false"><path d="M10 17V3M5 8l5-5 5 5" /></svg>
   </button>
 
-  <script src="include-partials.js?v=86299cdd2e"></script>
+  <script src="include-partials.js?v=50d7f24c14"></script>
 
   <script>
     document

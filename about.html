@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <script>
+    // Hide before the first paint, not after asynchronous navigation loads.
+    document.documentElement.classList.add('page-loading');
+    window.pageEntranceFallback = window.setTimeout(() => {
+      document.documentElement.classList.remove('page-loading');
+      document.querySelectorAll('.fade-in').forEach(element => element.classList.add('is-visible'));
+    }, 4000);
+  </script>
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  />
+
+  <title>Andrei Smolik — ANDREI SMOLIK</title>
+
+  <meta
+    name="description"
+    content="Designer"
+  />
+
+  <link
+    rel="icon"
+    type="image/png"
+    href="favicon.png?v=2"
+  />
+
+  <link
+  rel="stylesheet"
+  href="style.css?v=50d7f24c14"
+/>
+</head>
+
+<body>
+
+  <div
+    class="page-scroll"
+    id="pageScroll"
+  >
+    <div data-include="nav.html?v=50d7f24c14"></div>
+
+    <div class="page-content-frame">
+    <main class="project about-page">
+
+      <div class="project-information-panel">
+      <div class="project-information fade-in" id="projectInformation" tabindex="0" role="region" aria-label="Project information">
+        <div class="project-header">
+          <h1 class="project-title-line">
+            <strong>Andrei Smolik</strong>
+            <span class="project-subtitle">Designer</span>
+          </h1>
+
+
+        </div>
+
+        <div class="project-columns project-columns--single">
+
+          <div class="project-col">
+
+            <p>I am a designer working in Western Australia at the intersection of art, architecture and technology. I create public artworks, architectural installations and spatial experiences that respond to their surroundings and bring a distinctive identity to place.</p>
+
+            <p>Collaboration is central to my practice. I work with clients, artists, architects, engineers and fabricators to develop a shared vision and translate it into a compelling, buildable outcome. I value clear communication and early technical dialogue, allowing creative ambition and practical requirements to inform each other throughout a project.</p>
+
+            <p>My approach combines creative exploration with computational design. Through parametric modelling and digital fabrication, I explore complex geometries while resolving the details of materials, assembly and construction. My work spans integrated façades, sculptural installations, interactive environments and timber structures.</p>
+
+            <p>I’ve contributed to projects for educational campuses, public spaces and commercial developments, drawing inspiration from local character of each site. Alongside commissioned work, teaching and international workshops keep my practice exploratory and open to new methods.</p>
+
+            <p>For clients, I bring both visual imagination and technical depth: developing a strong concept, communicating its possibilities and maintaining its intent from design to installation.</p>
+
+          </div>
+
+
+
+        </div>
+      </div>
+
+      </div>
+
+      <div class="project-media">
+
+      <div class="project-lead-media project-lead-media--single">
+        <figure class="project-image fade-in">
+          <img
+            src="images/page-about/IMG_1990-1800w.webp"
+            srcset="images/page-about/IMG_1990-480w.webp 480w, images/page-about/IMG_1990-800w.webp 800w, images/page-about/IMG_1990-1200w.webp 1200w, images/page-about/IMG_1990-1800w.webp 1800w"
+            width="6000"
+            height="4000"
+            sizes="(min-width: 1000px) 43vw, 80vw"
+            alt=""
+            decoding="async"
+          />
+        </figure>
+      </div>
+
+
+
+
+      <div class="project-gallery">
+
+
+
+      </div>
+      </div>
+
+    </main>
+    </div>
+
+    <footer class="site-footer">
+      <span>
+        &copy;
+        <span id="year"></span>
+        <span data-site-name>ANDREI SMOLIK</span>
+        <span class="site-footer__version">(v0.5.4)</span>
+      </span>
+    </footer>
+  </div>
+
+  <button
+    class="back-to-top"
+    id="backToTop"
+    type="button"
+    aria-label="Back to top"
+    aria-hidden="true"
+    tabindex="-1"
+  >
+    <svg viewBox="0 0 20 20" aria-hidden="true" focusable="false"><path d="M10 17V3M5 8l5-5 5 5" /></svg>
+  </button>
+
+  <script src="include-partials.js?v=50d7f24c14"></script>
+
+  <script>
+    document.getElementById('year').textContent =
+      new Date().getFullYear();
+  </script>
+
+</body>
+</html>

@@ -2,6 +2,14 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <script>
+    // Hide before the first paint, not after asynchronous navigation loads.
+    document.documentElement.classList.add('page-loading');
+    window.pageEntranceFallback = window.setTimeout(() => {
+      document.documentElement.classList.remove('page-loading');
+      document.querySelectorAll('.fade-in').forEach(element => element.classList.add('is-visible'));
+    }, 4000);
+  </script>
   <meta
     name="viewport"
     content="width=device-width, initial-scale=1.0"
@@ -22,7 +30,7 @@
 
   <link
   rel="stylesheet"
-  href="style.css?v=86299cdd2e"
+  href="style.css?v=50d7f24c14"
 />
 </head>
 
@@ -32,12 +40,13 @@
     class="page-scroll"
     id="pageScroll"
   >
-    <div data-include="nav.html?v=86299cdd2e"></div>
+    <div data-include="nav.html?v=50d7f24c14"></div>
 
+    <div class="page-content-frame">
     <main class="project">
 
       <div class="project-information-panel">
-      <div class="project-information" id="projectInformation" tabindex="0" role="region" aria-label="Project information">
+      <div class="project-information fade-in" id="projectInformation" tabindex="0" role="region" aria-label="Project information">
         <div class="project-header">
           <h1 class="project-title-line">
             <strong>Fragments</strong>
@@ -89,6 +98,8 @@
           <img
             src="images/fragments/Andrei%20Smolik%2002-1800w.webp"
             srcset="images/fragments/Andrei%20Smolik%2002-480w.webp 480w, images/fragments/Andrei%20Smolik%2002-800w.webp 800w, images/fragments/Andrei%20Smolik%2002-1200w.webp 1200w, images/fragments/Andrei%20Smolik%2002-1800w.webp 1800w"
+            width="2048"
+            height="1365"
             sizes="(min-width: 1000px) 43vw, 80vw"
             alt=""
             decoding="async"
@@ -108,6 +119,8 @@
           <img
             src="images/fragments/Andrei%20Smolik%2001-1365w.webp"
             srcset="images/fragments/Andrei%20Smolik%2001-480w.webp 480w, images/fragments/Andrei%20Smolik%2001-800w.webp 800w, images/fragments/Andrei%20Smolik%2001-1200w.webp 1200w, images/fragments/Andrei%20Smolik%2001-1365w.webp 1365w"
+            width="1365"
+            height="2048"
             sizes="(min-width: 1000px) 43vw, 80vw"
             alt=""
             loading="lazy"
@@ -125,6 +138,8 @@
           <img
             src="images/fragments/Andrei%20Smolik%2003-1800w.webp"
             srcset="images/fragments/Andrei%20Smolik%2003-480w.webp 480w, images/fragments/Andrei%20Smolik%2003-800w.webp 800w, images/fragments/Andrei%20Smolik%2003-1200w.webp 1200w, images/fragments/Andrei%20Smolik%2003-1800w.webp 1800w"
+            width="2048"
+            height="1365"
             sizes="(min-width: 1000px) 43vw, 80vw"
             alt=""
             loading="lazy"
@@ -142,6 +157,8 @@
           <img
             src="images/fragments/DSC03451-1536w.webp"
             srcset="images/fragments/DSC03451-480w.webp 480w, images/fragments/DSC03451-800w.webp 800w, images/fragments/DSC03451-1200w.webp 1200w, images/fragments/DSC03451-1536w.webp 1536w"
+            width="1536"
+            height="2048"
             sizes="(min-width: 1000px) 43vw, 80vw"
             alt=""
             loading="lazy"
@@ -159,6 +176,8 @@
           <img
             src="images/fragments/DSC03457-1536w.webp"
             srcset="images/fragments/DSC03457-480w.webp 480w, images/fragments/DSC03457-800w.webp 800w, images/fragments/DSC03457-1200w.webp 1200w, images/fragments/DSC03457-1536w.webp 1536w"
+            width="1536"
+            height="2048"
             sizes="(min-width: 1000px) 43vw, 80vw"
             alt=""
             loading="lazy"
@@ -175,13 +194,14 @@
       </div>
 
     </main>
+    </div>
 
     <footer class="site-footer">
       <span>
         &copy;
         <span id="year"></span>
         <span data-site-name>ANDREI SMOLIK</span>
-        <span class="site-footer__version">(v0.5.3)</span>
+        <span class="site-footer__version">(v0.5.4)</span>
       </span>
     </footer>
   </div>
@@ -197,7 +217,7 @@
     <svg viewBox="0 0 20 20" aria-hidden="true" focusable="false"><path d="M10 17V3M5 8l5-5 5 5" /></svg>
   </button>
 
-  <script src="include-partials.js?v=86299cdd2e"></script>
+  <script src="include-partials.js?v=50d7f24c14"></script>
 
   <script>
     document.getElementById('year').textContent =

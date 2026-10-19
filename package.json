@@ -2,7 +2,10 @@
   "name": "andrei-smolik-portfolio",
   "private": true,
   "scripts": {
-    "generate": "node build/generate.js"
+    "generate": "node build/generate.js",
+    "test": "node --test build/tests/*.test.js && npm run test:scroll",
+    "test:scroll": "node build/test-column-bounce.js",
+    "check": "node --check include-partials.js && node --check build/generate.js && npm test"
   },
   "dependencies": {
     "sharp": "^0.34.3"
