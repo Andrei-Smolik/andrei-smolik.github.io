@@ -434,13 +434,7 @@ function initSplashVideo() {
       '.splash'
     );
 
-  video.defaultMuted = true;
-  video.muted = true;
-  video.playsInline = true;
-
-  function playVideo() {
-    playVideoSafely(video);
-  }
+  const playVideo = initVideoAutoplay(video, () => !checkbox?.checked);
 
   function revealVideo() {
     splash?.classList.add(
@@ -458,29 +452,9 @@ function initSplashVideo() {
 
   if (checkbox?.checked) {
     video.pause();
-  } else {
-    playVideo();
   }
 
-  video.addEventListener(
-    'loadeddata',
-    () => {
-      if (!checkbox?.checked) {
-        playVideo();
-      }
-    }
-  );
-
-  video.addEventListener(
-    'canplay',
-    () => {
-      revealVideo();
-
-      if (!checkbox?.checked) {
-        playVideo();
-      }
-    }
-  );
+  video.addEventListener('canplay', revealVideo);
 
   video.addEventListener(
     'error',
@@ -506,33 +480,60 @@ function initSplashVideo() {
       }
     }
   );
-
-  document.addEventListener(
-    'touchstart',
-    () => {
-      if (!checkbox?.checked) {
-        playVideo();
-      }
-    },
-    {
-      passive: true,
-      once: true,
-    }
-  );
 }
 
 /* --------------------------------------------------------------------------
    Project video autoplay
    -------------------------------------------------------------------------- */
 
-function playVideoSafely(video) {
-  // Browsers can reject autoplay (or return no promise on older engines).
-  // Playback failure must not interrupt navigation/page initialisation.
-  try {
-    video.play()?.catch(() => {});
-  } catch {
-    // A later loadeddata/canplay or user gesture can retry playback.
+function initVideoAutoplay(video, isEnabled = () => true) {
+  video.autoplay = true;
+  video.defaultMuted = true;
+  video.muted = true;
+  video.loop = true;
+  video.controls = false;
+  video.playsInline = true;
+  video.setAttribute('playsinline', '');
+  video.setAttribute('muted', '');
+  video.removeAttribute('controls');
+
+  let pendingPlay = null;
+  function attempt(userGesture = false) {
+    if (!isEnabled() || document.hidden || video.isConnected === false || video.error) return;
+    if (!video.paused || (pendingPlay && !userGesture)) return;
+    // Keep play() directly inside touchend/click/keydown handlers: Safari
+    // loses user activation if this is deferred to a promise, timer or frame.
+    video.muted = true;
+    try {
+      const request = video.play();
+      pendingPlay = request;
+      const settled = () => { if (pendingPlay === request) pendingPlay = null; };
+      request?.then(settled, settled);
+    } catch {
+      pendingPlay = null;
+      // Policy/readiness failures are retried on the next lifecycle event.
+    }
   }
+
+  const retry = () => attempt();
+  ['loadeddata', 'canplay'].forEach(type => video.addEventListener(type, retry));
+  document.addEventListener('visibilitychange', retry);
+  document.addEventListener('page-visible', retry);
+  window.addEventListener('pageshow', retry);
+  // A paused offscreen video needs another attempt when it enters either
+  // the mobile page or the independently scrolling desktop media column.
+  if (typeof IntersectionObserver !== 'undefined') {
+    const observer = new IntersectionObserver(entries => {
+      if (entries.some(entry => entry.isIntersecting)) retry();
+    });
+    observer.observe(video);
+  }
+  // Do not consume the gesture or remove the listener after a failed attempt.
+  ['touchend', 'click', 'keydown'].forEach(type => {
+    document.addEventListener(type, () => attempt(true), { passive: true });
+  });
+  retry();
+  return retry;
 }
 
 function initProjectVideos() {
@@ -542,29 +543,7 @@ function initProjectVideos() {
     );
 
   videos.forEach((video) => {
-    video.muted = true;
-    video.defaultMuted = true;
-    video.loop = true;
-    video.controls = false;
-    video.playsInline = true;
-
-    function play() {
-      playVideoSafely(video);
-    }
-
-    video.addEventListener(
-      'loadeddata',
-      play,
-      { once: true }
-    );
-
-    video.addEventListener(
-      'canplay',
-      play,
-      { once: true }
-    );
-
-    play();
+    initVideoAutoplay(video);
   });
 }
 
@@ -709,6 +688,7 @@ function initPageEntrance() {
 
     window.clearTimeout(window.pageEntranceFallback);
     document.documentElement.classList.remove('page-loading');
+    document.dispatchEvent(new Event('page-visible'));
   }
 
   const checkbox =
@@ -1454,7 +1434,7 @@ if (typeof module === 'object' && module.exports) {
   module.exports = {
     parseIni, isIndexPage, initNavSearch, initProjectSearch, markCurrentNavLink,
     getMediaScrollTarget, initNativeScrollLayout, initBackToTop,
-    initSplashScrollTrigger, initProjectTextDrag, initProjectVideos,
+    initSplashScrollTrigger, initProjectTextDrag, initProjectVideos, initVideoAutoplay, initSplashVideo,
   };
 } else {
   initSite().catch(handleInitialisationError);

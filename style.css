@@ -564,6 +564,47 @@ a:not(.site-nav__name) {
    Page layout
    -------------------------------------------------------------------------- */
 
+/* On phones, reserve actual layout space for search rather than floating it
+   over Contact. Wrap to another row when the links and button cannot fit. */
+@media (max-width: 700px) {
+  .site-nav {
+    --nav-name-links-gap: 0.65rem;
+  }
+
+  .site-nav__links {
+    flex-wrap: wrap;
+    gap: 0.65rem 0.75rem;
+  }
+
+  .site-nav__primary {
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    max-width: 100%;
+  }
+
+  .site-nav__search-group {
+    position: relative;
+    top: auto;
+    transform: none;
+    flex: 0 0 auto;
+  }
+
+  .site-nav__links.is-searching {
+    grid-template-rows: auto auto;
+    row-gap: 0.65rem;
+  }
+
+  .site-nav__links.is-searching .site-nav__search-group {
+    justify-self: center;
+    max-width: 100%;
+  }
+
+  .site-nav__links.is-searching .site-nav__search {
+    width: min(320px, calc(80vw - 2.4rem));
+  }
+}
+
 .page-scroll {
   display: flex;
   flex-direction: column;

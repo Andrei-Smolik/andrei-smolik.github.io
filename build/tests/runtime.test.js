@@ -91,8 +91,9 @@ test('text dragging clamps to its own bounds and releases pointer capture', () =
 
 test('autoplay setup tolerates rejection, synchronous errors, and older play implementations', async () => {
   const videos = [() => Promise.reject(new Error('Blocked')), () => undefined, () => { throw new Error('Not ready'); }]
-    .map(play => Object.assign(element(), { play }));
-  loadRuntime({ document: { querySelectorAll: () => videos } }).initProjectVideos();
+    .map(play => Object.assign(element(), { play, paused: true }));
+  const document = Object.assign(element(), { querySelectorAll: () => videos });
+  loadRuntime({ document, window: element() }).initProjectVideos();
   await new Promise(resolve => setImmediate(resolve));
   for (const video of videos) {
     assert.equal(video.controls, false);
@@ -101,4 +102,87 @@ test('autoplay setup tolerates rejection, synchronous errors, and older play imp
     assert.equal(video.playsInline, true);
     assert.equal(video.loop, true);
   }
+});
+
+function autoplayFixture(play) {
+  const document = Object.assign(element(), { hidden: false });
+  const window = element();
+  const video = Object.assign(element(), { paused: true, isConnected: true, play });
+  let intersection;
+  const api = loadRuntime({ document, window, IntersectionObserver: class {
+    constructor(callback) { intersection = callback; }
+    observe(target) { assert.equal(target, video); }
+  } });
+  return { api, document, window, video, intersect: visible => intersection([{ isIntersecting: visible }]) };
+}
+
+test('blocked autoplay retries synchronously on every eligible iPhone touch gesture', async () => {
+  let calls = 0;
+  const fixture = autoplayFixture(() => { calls++; return Promise.reject(new Error('NotAllowedError')); });
+  fixture.api.initVideoAutoplay(fixture.video);
+  assert.equal(calls, 1);
+  // A gesture can retry even before the original rejection has settled.
+  fixture.document.dispatchEvent({ type: 'touchend' });
+  assert.equal(calls, 2);
+  await new Promise(resolve => setImmediate(resolve));
+  fixture.document.dispatchEvent({ type: 'touchend' });
+  assert.equal(calls, 3);
+  await new Promise(resolve => setImmediate(resolve));
+});
+
+test('autoplay retries on viewport entry, page reveal, Safari restoration and tab return', () => {
+  let calls = 0;
+  const fixture = autoplayFixture(() => { calls++; });
+  fixture.api.initVideoAutoplay(fixture.video);
+  fixture.intersect(false);
+  assert.equal(calls, 1);
+  fixture.intersect(true);
+  fixture.document.dispatchEvent({ type: 'page-visible' });
+  fixture.window.dispatchEvent({ type: 'pageshow', persisted: true });
+  assert.equal(calls, 4);
+  fixture.document.hidden = true;
+  fixture.document.dispatchEvent({ type: 'visibilitychange' });
+  assert.equal(calls, 4);
+  fixture.document.hidden = false;
+  fixture.document.dispatchEvent({ type: 'visibilitychange' });
+  assert.equal(calls, 5);
+  fixture.video.paused = false;
+  fixture.document.dispatchEvent({ type: 'click' });
+  assert.equal(calls, 5, 'do not restart a playing video');
+});
+
+test('autoplay does not restart dismissed splash or removed/broken videos', () => {
+  let calls = 0;
+  let enabled = false;
+  const fixture = autoplayFixture(() => { calls++; });
+  const retry = fixture.api.initVideoAutoplay(fixture.video, () => enabled);
+  fixture.document.dispatchEvent({ type: 'touchend' });
+  fixture.video.dispatchEvent({ type: 'canplay' });
+  fixture.intersect(true);
+  assert.equal(calls, 0);
+  enabled = true;
+  retry();
+  assert.equal(calls, 1);
+  fixture.video.isConnected = false;
+  retry();
+  assert.equal(calls, 1);
+  fixture.video.isConnected = true;
+  fixture.video.error = { code: 4 };
+  retry();
+  assert.equal(calls, 1);
+});
+
+test('readiness events do not flood an in-flight play request, but can retry afterward', async () => {
+  let calls = 0;
+  let finish;
+  const fixture = autoplayFixture(() => { calls++; return new Promise(resolve => { finish = resolve; }); });
+  fixture.api.initVideoAutoplay(fixture.video);
+  fixture.video.dispatchEvent({ type: 'loadeddata' });
+  fixture.video.dispatchEvent({ type: 'canplay' });
+  assert.equal(calls, 1);
+  finish();
+  await new Promise(resolve => setImmediate(resolve));
+  fixture.video.dispatchEvent({ type: 'canplay' });
+  assert.equal(calls, 2);
+  finish();
 });
