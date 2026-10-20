@@ -538,25 +538,29 @@ a:not(.site-nav__name) {
   pointer-events: auto;
 }
 
-/* Give the expanded field its own row before it can overlap the links. */
+/* Phones and tablets expand search over the existing navigation row. */
 @media (max-width: 1440px) {
   .site-nav__links.is-searching {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr);
-    grid-template-rows: 2rem auto;
-    row-gap: 0.5rem;
+    display: flex;
   }
 
   .site-nav__links.is-searching .site-nav__primary {
-    justify-self: center;
+    visibility: hidden;
+    pointer-events: none;
   }
 
   .site-nav__links.is-searching .site-nav__search-group {
-    position: relative;
-    top: auto;
-    transform: none;
-    justify-self: end;
-    min-height: 1.8rem;
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 100%;
+    min-height: 0;
+    background: var(--paper);
+    z-index: 1;
+  }
+
+  .site-nav__links.is-searching .site-nav__search {
+    width: 100%;
   }
 }
 
@@ -615,29 +619,6 @@ a:not(.site-nav__name) {
     overflow: visible;
   }
 
-  .site-nav__links.is-searching {
-    display: flex;
-  }
-
-  .site-nav__links.is-searching .site-nav__primary {
-    /* Retain the row's dimensions, but do not leave covered links clickable. */
-    visibility: hidden;
-    pointer-events: none;
-  }
-
-  .site-nav__links.is-searching .site-nav__search-group {
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 100%;
-    min-height: 0;
-    background: var(--paper);
-    z-index: 1;
-  }
-
-  .site-nav__links.is-searching .site-nav__search {
-    width: 100%;
-  }
 }
 
 .page-scroll {
