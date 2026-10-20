@@ -1416,27 +1416,9 @@ function initProjectTextDrag(panel, desktop) {
   desktop.addEventListener('change', endDrag);
 }
 
-function initSearchViewportSync() {
-  const viewport = window.visualViewport;
-  const input = document.getElementById('siteNavSearchInput');
-  const group = input?.closest('.site-nav__search-group');
-  if (!viewport || !group) return;
-  const update = () => {
-    const inset = document.activeElement === input
-      ? Math.max(0, window.innerHeight - viewport.height - viewport.offsetTop) : 0;
-    group.style.setProperty('--search-keyboard-inset', `${inset}px`);
-  };
-  viewport.addEventListener('resize', update);
-  viewport.addEventListener('scroll', update);
-  input.addEventListener('focus', update);
-  input.addEventListener('blur', update);
-  update();
-}
-
 async function initSite() {
   await includePartials();
   initNavSearch();
-  initSearchViewportSync();
 
   await initContactLinks();
 

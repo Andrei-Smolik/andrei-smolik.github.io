@@ -582,6 +582,7 @@ a:not(.site-nav__name) {
   .site-nav__links {
     flex-wrap: nowrap;
     gap: 0.2rem;
+    padding-inline: calc(var(--nav-search-height) + 0.2rem);
   }
 
   .site-nav__primary {
@@ -597,13 +598,10 @@ a:not(.site-nav__name) {
   }
 
   .site-nav__search-group {
-    position: fixed;
-    top: auto;
-    right: auto;
-    bottom: calc(var(--scroll-control-bottom) + var(--search-keyboard-inset, 0px));
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: 40;
+    position: absolute;
+    top: 50%;
+    right: 0;
+    transform: translateY(-50%);
   }
 
   .site-nav__search {
@@ -612,20 +610,33 @@ a:not(.site-nav__name) {
     background: var(--paper);
   }
 
+  .site-nav__links:not(.is-searching) .site-nav__search {
+    /* The button is as large as its wrapper: do not clip its outer stroke. */
+    overflow: visible;
+  }
+
   .site-nav__links.is-searching {
     display: flex;
   }
 
+  .site-nav__links.is-searching .site-nav__primary {
+    /* Retain the row's dimensions, but do not leave covered links clickable. */
+    visibility: hidden;
+    pointer-events: none;
+  }
+
   .site-nav__links.is-searching .site-nav__search-group {
-    position: fixed;
-    top: auto;
-    transform: translateX(-50%);
-    max-width: 80vw;
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 100%;
     min-height: 0;
+    background: var(--paper);
+    z-index: 1;
   }
 
   .site-nav__links.is-searching .site-nav__search {
-    width: min(320px, calc(80vw - 2.4rem));
+    width: 100%;
   }
 }
 
@@ -730,6 +741,12 @@ main {
 
   height: 1.5px;
   background: #000000;
+}
+
+@media (max-width: 700px) {
+  .site-footer {
+    padding-block: 0.625rem;
+  }
 }
 
 /* The spacer preserves the footer's original place in the document. The
@@ -1968,12 +1985,6 @@ main.project {
 .site-nav__search-label {
   border-color: transparent;
   background: transparent;
-}
-
-@media (max-width: 700px) {
-  .site-nav__search-label {
-    border-color: #000;
-  }
 }
 
 .splash__cta:focus-visible,
